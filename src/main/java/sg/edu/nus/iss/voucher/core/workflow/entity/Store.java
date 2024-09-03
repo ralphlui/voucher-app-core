@@ -75,6 +75,13 @@ public class Store {
 
 	@OneToMany(mappedBy = "campaignId")
 	private List<Campaign> campaign;
+	
+	@Column(nullable = false)
+	private String createdBy;
+	
+	@Column(nullable = true)
+	private String updatedBy;
+
 
 	
 }
