@@ -48,7 +48,7 @@ public class StoreController {
 			
 			if (storeDTOList.size() > 0) {
 				return ResponseEntity.status(HttpStatus.OK).body(
-						APIResponse.success(storeDTOList, "Successfully get all active store..", totalRecord));
+						APIResponse.success(storeDTOList, "Successfully get all active store.", totalRecord));
 
 			} else {
 				String message = "No Active Store List.";

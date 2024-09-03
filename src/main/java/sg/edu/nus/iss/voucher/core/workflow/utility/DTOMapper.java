@@ -33,4 +33,26 @@ public class DTOMapper {
 		storeDTO.setUpdatedBy(store.getUpdatedBy());
 		return storeDTO;
 	}
+	
+
+	public static StoreDTO toStoreDTO(Store store) {
+		StoreDTO storeDTO = new StoreDTO();
+		storeDTO.setStoreId(store.getStoreId());
+		storeDTO.setStoreName(store.getStoreName());
+		storeDTO.setDescription(store.getDescription());
+		storeDTO.setImage(store.getImage());
+		storeDTO.setTagsJson(store.getTagsJson());
+		storeDTO.setAddress1(store.getAddress1());
+		storeDTO.setAddress2(store.getAddress2());
+		storeDTO.setAddress3(store.getAddress3());
+		storeDTO.setPostalCode(store.getPostalCode());
+		storeDTO.setCity(store.getCity());
+		storeDTO.setState(store.getState());
+		storeDTO.setCountry(store.getCountry());
+		storeDTO.setContactNumber(store.getContactNumber());
+		storeDTO.setCreatedDate(store.getCreatedDate());
+		storeDTO.setCreatedBy(store.getCreatedBy());
+		storeDTO.setUpdatedBy(store.getUpdatedBy());
+		return storeDTO;
+	}
 }
