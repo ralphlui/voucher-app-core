@@ -11,4 +11,6 @@ import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 public interface StoreRepository extends JpaRepository<Store, String> {
 
 	Page<Store> findByIsDeletedFalse(Pageable pageable);
+	
+	Store findByStoreName(String storename);
 }
