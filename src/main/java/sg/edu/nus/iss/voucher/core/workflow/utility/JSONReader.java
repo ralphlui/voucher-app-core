@@ -26,7 +26,7 @@ public class JSONReader {
 			JSONParser parser = new JSONParser();
 			JSONObject jsonResponse = (JSONObject) parser.parse(responseStr);
 			HashMap<Boolean, String> resultMap = new HashMap<Boolean, String>();
-			if (jsonResponse == null) {
+			if (jsonResponse == null || jsonResponse.isEmpty()) {
 				resultMap.put(false, "Invalid response.");
 				return resultMap;
 			}
