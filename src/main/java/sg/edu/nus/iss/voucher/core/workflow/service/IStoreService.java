@@ -18,4 +18,6 @@ public interface IStoreService {
 	Store uploadImage(Store store, MultipartFile uploadFile);
 	
 	StoreDTO findByStoreName(String storename);
+	
+	StoreDTO findByStoreId(String storeId);
 }

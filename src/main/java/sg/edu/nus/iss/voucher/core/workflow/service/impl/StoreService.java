@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import sg.edu.nus.iss.voucher.core.workflow.configuration.VoucherCoreSecurityConfig;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
+import sg.edu.nus.iss.voucher.core.workflow.exception.StoreNotFoundException;
 import sg.edu.nus.iss.voucher.core.workflow.repository.StoreRepository;
 import sg.edu.nus.iss.voucher.core.workflow.service.IStoreService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
@@ -102,6 +104,22 @@ public class StoreService implements IStoreService {
 		return storeDTO;
 
 	}
+	
+	@Override
+	public StoreDTO findByStoreId(String storeId) {
+		try {
+			Optional<Store> store = storeRepository.findById(storeId);
+			if (store.isPresent()) {
+				StoreDTO storeDTO = DTOMapper.toStoreDTO(store.get());
+				return storeDTO;
+			}
+			throw new StoreNotFoundException("Unable to find the store with id:" + storeId);
+		} catch (Exception ex) {
+			logger.error("findByStoreId exception... {}", ex.toString());
+			throw ex;
+		}
+	}
+	
 
 	@Override
 	public Store uploadImage(Store store, MultipartFile uploadFile) {
