@@ -65,7 +65,7 @@ public class StoreService implements IStoreService {
 
 		} catch (Exception ex) {
 			logger.error("findByIsDeletedFalse exception... {}", ex.toString());
-			return null;
+			throw ex;
 		}
 
 	}
