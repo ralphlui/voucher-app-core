@@ -1,5 +1,6 @@
 package sg.edu.nus.iss.voucher.core.workflow.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -140,5 +141,62 @@ public class StoreController {
 
 		}
 
+	}
+	
+	@GetMapping(value = "/users/{userId}", produces = "application/json")
+	public ResponseEntity<APIResponse<List<StoreDTO>>> getAllStoreByUser(@PathVariable("userId") String userId,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "500") int size) {
+
+		logger.info("Call store getAllByUser API with page={}, size={}", page, size);
+		String message = "";
+
+		try {
+
+			String userid = GeneralUtility.makeNotNull(userId).trim();
+			if (userid.isEmpty()) {
+				message = "User id cannot be blank.";
+				logger.error(message);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error(message));
+			}
+
+			logger.info("UserId: " + userid);
+			HashMap<String, String> userMap = storeService.getUserByUserId(userid);
+			logger.info("user Id key map "+ userMap.keySet());
+			
+			for (Map.Entry<String, String> entry : userMap.entrySet()) {
+				logger.info("user role: " + entry.getValue());
+				logger.info("user id: " + entry.getKey());
+				
+				if (!userid.equals(entry.getKey()) || !entry.getValue().toUpperCase().equals("MERCHANT")) {
+					message = "Invalid user info request.";
+					logger.error(message);
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error(message));
+				}
+			}
+
+			Pageable pageable = PageRequest.of(page, size, Sort.by("storeName").ascending());
+			Map<Long, List<StoreDTO>> resultMap = storeService.findActiveStoreListByUserId(userid, false, pageable);
+			logger.info("size " + resultMap.size());
+
+			Map.Entry<Long, List<StoreDTO>> firstEntry = resultMap.entrySet().iterator().next();
+			long totalRecord = firstEntry.getKey();
+			List<StoreDTO> storeDTOList = firstEntry.getValue();
+
+			if (storeDTOList.size() > 0) {
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(APIResponse.success(storeDTOList, "Successfully get all active store by user.", totalRecord));
+
+			} else {
+				message = "No Active Store List.";
+				logger.error(message);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.noList(storeDTOList, message));
+			}
+
+		} catch (Exception e) {
+			message = e.getMessage();
+			logger.error(message);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+
+		}
 	}
 }

@@ -26,6 +26,7 @@ import sg.edu.nus.iss.voucher.core.workflow.service.IStoreService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 import sg.edu.nus.iss.voucher.core.workflow.utility.ImageUploadToS3;
+import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @Service
 public class StoreService implements IStoreService {
@@ -40,6 +41,9 @@ public class StoreService implements IStoreService {
 
 	@Autowired
 	private VoucherCoreSecurityConfig securityConfig;
+	
+	@Autowired
+	private JSONReader jsonReader;
 
 	@Override
 	public Map<Long, List<StoreDTO>> getAllActiveStoreList(Pageable pageable) {
@@ -147,6 +151,48 @@ public class StoreService implements IStoreService {
 
 		}
 		return store;
+	}
+
+	@Override
+	public Map<Long, List<StoreDTO>> findActiveStoreListByUserId(String createdBy, boolean isDeleted,
+			Pageable pageable) {
+		try {
+			Page<Store> storePages = storeRepository.findActiveStoreListByUserId(createdBy, isDeleted, pageable);
+			long totalRecord = storePages.getTotalElements();
+			Map<Long, List<StoreDTO>> result = new HashMap<>();
+
+			if (totalRecord > 0) {
+				List<StoreDTO> storeDTOList = new ArrayList<>();
+				for (Store store : storePages.getContent()) {
+					StoreDTO storeDTO = DTOMapper.mapStoreToResult(store);
+					storeDTOList.add(storeDTO);
+				}
+				result.put(totalRecord, storeDTOList);
+			}
+
+			return result;
+		} catch (Exception ex) {
+			logger.error("findByIsDeletedFalse exception... {}", ex.toString());
+			throw ex;
+
+		}
+
+	}
+
+	@Override
+	public HashMap<String, String> getUserByUserId(String userId) throws Exception {
+		try {
+			HashMap<String, String> userMap = jsonReader.getUserByUserId(userId);
+			if (userMap.size() > 0) {
+				return userMap;
+			}
+			throw new Exception("Invalid user Info");
+			
+		} catch (Exception ex) {
+			logger.error("findByIsDeletedFalse exception... {}", ex.toString());
+			throw ex;
+
+		}
 	}
 
 }

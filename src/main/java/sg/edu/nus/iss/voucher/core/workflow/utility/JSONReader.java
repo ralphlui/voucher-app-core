@@ -41,4 +41,32 @@ public class JSONReader {
 			return null;
 		}
 	}
+	
+	public HashMap<String, String> getUserByUserId(String userId) {
+		
+		HashMap<String, String> resultMap = new HashMap<String, String>();
+		String responseStr = apiCall.getSpecificActiveUser(userId);
+		try {
+
+			JSONParser parser = new JSONParser();
+			JSONObject jsonResponse = (JSONObject) parser.parse(responseStr);
+			if (jsonResponse == null || jsonResponse.isEmpty()) {
+				return resultMap;
+			}
+			JSONObject data = (JSONObject) jsonResponse.get("data");
+			Boolean success = (Boolean) jsonResponse.get("success");
+	
+			if (Boolean.TRUE.equals(success) && !GeneralUtility.makeNotNull(data).isEmpty()) {
+				String id = (String) data.get("userID");
+				String userRole = (String) data.get("role");
+				resultMap.put(id, userRole);
+			}	
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+			logger.error("Error parsing JSON response... {}", e.toString());
+		}
+		logger.info("user Id key in json reader "+ resultMap.keySet());
+		return resultMap;
+	}
 }
