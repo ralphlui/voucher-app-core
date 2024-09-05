@@ -1,5 +1,8 @@
 package sg.edu.nus.iss.voucher.core.workflow.controller;
 
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -20,17 +23,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
+import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -42,6 +51,14 @@ public class StoreControllerTest {
 	@Autowired
 	private MockMvc mockMvc;
 
+	@Autowired
+	private ObjectMapper objectMapper;
+	
+	@Autowired
+	private JSONReader jsonReader;
+	
+	@Autowired
+	AuthAPICall apiCall;
 
 	@MockBean
 	private StoreService storeService;
@@ -51,7 +68,7 @@ public class StoreControllerTest {
 	private static Store store1 = new Store("1", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
-			null, null, null, null, false, null, "", "");
+			null, null, null, null, false, null, "423edfbf-ec17-471f-b45a-892a75fa9008", "");
 	private static Store store2 = new Store("1", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
@@ -78,6 +95,30 @@ public class StoreControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.message").value("Successfully get all active store.")).andDo(print());
+	}
+	
+
+	@Test
+	void testCreateStore() throws Exception {
+
+		MockMultipartFile uploadFile = new MockMultipartFile("image", "store.jpg", "image/jpg", "store".getBytes());
+
+		MockMultipartFile store = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
+				objectMapper.writeValueAsBytes(store1));
+
+		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/stores").file(store).file(uploadFile)
+				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isUnauthorized())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
+		
+		MockMultipartFile storeFile = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
+				objectMapper.writeValueAsBytes(store2));
+
+		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/stores").file(storeFile).file(uploadFile)
+				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isBadRequest())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.message").value("Bad Request: Store Create user id field could not be blank.")).andDo(print());
+
 	}
 
 }

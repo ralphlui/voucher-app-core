@@ -1,10 +1,12 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +75,18 @@ public class StoreServiceTest {
 
 		assertThat(totalRecord).isGreaterThan(0);
 		assertThat(storeDTOList.get(0).getStoreName()).isEqualTo("MUJI");
+	}
+	
+	@Test
+	void testCreateStore() throws Exception {
+		Mockito.when(storeRepository.save(Mockito.any(Store.class))).thenReturn(store);
+		MockMultipartFile imageFile = new MockMultipartFile("image", "store.jpg", "image/jpg", "store".getBytes());
+
+		StoreDTO storeDTO = storeService.createStore(store, imageFile);
+
+		assertThat(storeDTO).isNotNull();
+		assertEquals(storeDTO.getDescription(), store.getDescription());
+
 	}
 
 }

@@ -3,7 +3,6 @@ package sg.edu.nus.iss.voucher.core.workflow.strategy.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
