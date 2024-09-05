@@ -93,15 +93,18 @@ public class StoreService implements IStoreService {
 
 	@Override
 	public StoreDTO findByStoreName(String storename) {
-		StoreDTO storeDTO = new StoreDTO();
 		try {
 			Store store = storeRepository.findByStoreName(storename);
-			storeDTO = DTOMapper.toStoreDTO(store);
+			StoreDTO storeDTO = DTOMapper.toStoreDTO(store);
+			if (storeDTO == null) {
+				throw new StoreNotFoundException("Create store failed: Unable to create a new store.");
+			}
+			return storeDTO;
 		} catch (Exception ex) {
 			logger.error("findByStoreId exception... {}", ex.toString());
+			throw ex;
 
 		}
-		return storeDTO;
 
 	}
 	
