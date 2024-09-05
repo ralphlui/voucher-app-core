@@ -101,7 +101,7 @@ public class StoreServiceTest {
 	@Test
 	void findByStoreId() {
 
-		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
+		Mockito.when(storeRepository.findByStoreIdAndStatus(store.getStoreId(), false)).thenReturn(Optional.of(store));
 		StoreDTO storeDTO = storeService.findByStoreId(store.getStoreId());
 		assertThat(storeDTO).isNotNull();
 		assertEquals(storeDTO.getDescription(), store.getDescription());

@@ -115,12 +115,12 @@ public class StoreService implements IStoreService {
 	@Override
 	public StoreDTO findByStoreId(String storeId) {
 		try {
-			Optional<Store> store = storeRepository.findById(storeId);
+			Optional<Store> store = storeRepository.findByStoreIdAndStatus(storeId, false);
 			if (store.isPresent()) {
 				StoreDTO storeDTO = DTOMapper.toStoreDTO(store.get());
 				return storeDTO;
 			}
-			throw new StoreNotFoundException("Unable to find the store with id:" + storeId);
+			throw new StoreNotFoundException("Unable to find active store with id:" + storeId);
 		} catch (Exception ex) {
 			logger.error("findByStoreId exception... {}", ex.toString());
 			throw ex;
