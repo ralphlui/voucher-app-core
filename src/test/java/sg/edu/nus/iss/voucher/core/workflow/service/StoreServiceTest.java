@@ -88,5 +88,14 @@ public class StoreServiceTest {
 		assertEquals(storeDTO.getDescription(), store.getDescription());
 
 	}
+	
+	@Test
+	void getByStoreId() {
+		store.setStoreId("11");
+		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
+		Optional<Store> dbStore = storeRepository.findById(store.getStoreId());
+		assertThat(store).isNotNull();
+		assertThat(dbStore.get().getStoreName()).isEqualTo("MUJI");
+	}
 
 }
