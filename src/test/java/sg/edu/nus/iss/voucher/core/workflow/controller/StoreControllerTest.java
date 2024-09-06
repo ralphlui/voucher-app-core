@@ -125,5 +125,26 @@ public class StoreControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
 	}
+	
+
+	@Test
+	void testGetAllStoreByUser() throws Exception {
+
+
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("storeName").ascending());
+		Map<Long, List<StoreDTO>> mockStoreMap = new HashMap<>();
+		mockStoreMap.put(0L, mockStores);
+
+		Mockito.when(storeService.findActiveStoreListByUserId(store1.getCreatedBy(), false, pageable)).thenReturn(mockStoreMap);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/users/{userId}", store1.getCreatedBy()).param("page", "0").param("size", "10")
+				.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.data[0].storeName").value(store1.getStoreName()))
+				.andDo(print());
+
+	}
 
 }
