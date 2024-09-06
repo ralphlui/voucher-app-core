@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -198,5 +199,33 @@ public class StoreController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
 
 		}
+	}
+	
+	@PutMapping(value = "", produces = "application/json")
+	public ResponseEntity<APIResponse<StoreDTO>> updateStore(@RequestPart("store") Store store,
+			@RequestPart(value = "image", required = false) MultipartFile uploadFile) {
+		logger.info("Call store updat API...");
+		String message = "";
+		StoreDTO storeDTO = new StoreDTO();
+		try {
+
+			ValidationResult validationResult = storeValidationStrategy.validateUpdating(store, uploadFile);
+			if (!validationResult.isValid()) {
+				message = validationResult.getMessage();
+				logger.error(message);
+				return ResponseEntity.status(validationResult.getStatus()).body(APIResponse.error(message));
+			}
+
+			storeDTO = storeService.update(store, uploadFile);
+			message = "Store updated successfully.";
+
+			return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(storeDTO, message));
+
+		} catch (Exception e) {
+			message = "Error: " + e.getMessage();
+			logger.error(message);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+		}
+
 	}
 }

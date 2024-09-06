@@ -93,4 +93,45 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 
 	}
 
+
+	@Override
+	public ValidationResult validateUpdating(Store store, MultipartFile val) {
+		ValidationResult validationResult = new ValidationResult();
+		// Validate store ID
+		String storeId = GeneralUtility.makeNotNull(store.getStoreId());
+		if (storeId.isEmpty()) {
+			validationResult.setMessage("Bad Request: Store ID could not be blank.");
+			validationResult.setValid(false);
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			return validationResult;
+
+		}
+
+		StoreDTO storeDTO = storeService.findByStoreId(storeId);
+
+		if (storeDTO == null || storeDTO.getStoreId() == null || storeDTO.getStoreId().isEmpty()) {
+			validationResult.setMessage("Invalid store Id: " + storeId);
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			validationResult.setValid(false);
+			return validationResult;
+		}
+
+		// Check for updated by user
+		String userId = GeneralUtility.makeNotNull(store.getUpdatedBy());
+		if (userId.isEmpty()) {
+			validationResult.setMessage("Bad Request: Store Update user field could not be blank.");
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			validationResult.setValid(false);
+			return validationResult;
+		}
+
+		ValidationResult validationObjResult = validateObject(userId);
+		if (!validationObjResult.isValid()) {
+			return validationObjResult;
+		}
+
+		validationResult.setValid(true);
+		return validationResult;
+	}
+
 }

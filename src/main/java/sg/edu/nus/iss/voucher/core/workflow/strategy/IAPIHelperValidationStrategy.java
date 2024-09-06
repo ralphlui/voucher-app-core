@@ -9,4 +9,6 @@ public interface IAPIHelperValidationStrategy<T> {
 	ValidationResult validateCreation(T data,MultipartFile val);
 	
 	ValidationResult validateObject(String userId);
+	
+	ValidationResult validateUpdating(T data,MultipartFile val) ;
 }

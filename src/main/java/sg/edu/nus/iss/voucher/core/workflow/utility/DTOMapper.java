@@ -51,6 +51,7 @@ public class DTOMapper {
 		storeDTO.setCountry(store.getCountry());
 		storeDTO.setContactNumber(store.getContactNumber());
 		storeDTO.setCreatedDate(store.getCreatedDate());
+		storeDTO.setUpdatedDate(store.getUpdatedDate());
 		storeDTO.setCreatedBy(store.getCreatedBy());
 		storeDTO.setUpdatedBy(store.getUpdatedBy());
 		return storeDTO;

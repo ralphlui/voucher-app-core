@@ -194,5 +194,43 @@ public class StoreService implements IStoreService {
 
 		}
 	}
+	
+	@Override
+	public StoreDTO update(Store store, MultipartFile uploadFile) throws Exception {
+		StoreDTO storeDTO = new StoreDTO();
+		try {
+
+			Optional<Store> dbStore = storeRepository.findById(store.getStoreId());
+			store = this.uploadImage(store, uploadFile);
+			dbStore.get().setDescription(GeneralUtility.makeNotNull(store.getDescription()));
+			dbStore.get().setAddress1(GeneralUtility.makeNotNull(store.getAddress1()));
+			dbStore.get().setAddress2(GeneralUtility.makeNotNull(store.getAddress2()));
+			dbStore.get().setAddress3(GeneralUtility.makeNotNull(store.getAddress3()));
+			dbStore.get().setCity(GeneralUtility.makeNotNull(store.getCity()));
+			dbStore.get().setState(GeneralUtility.makeNotNull(store.getState()));
+			dbStore.get().setCountry(GeneralUtility.makeNotNull(store.getCountry()));
+			dbStore.get().setContactNumber(GeneralUtility.makeNotNull(store.getContactNumber()));
+			dbStore.get().setPostalCode(GeneralUtility.makeNotNull(store.getPostalCode()));
+			dbStore.get().setDeleted(store.isDeleted());
+			dbStore.get().setImage(store.getImage());
+			dbStore.get().setUpdatedBy(store.getUpdatedBy());
+			dbStore.get().setUpdatedDate(LocalDateTime.now());
+
+			logger.info("Updating store...");
+			Store updatedStore = storeRepository.save(dbStore.get());
+			if (updatedStore == null) {
+				throw new Exception("Update store failed: Changes could not be applied to the store :" + store.getStoreName());
+			}
+			logger.info("Updated successfully...{}", updatedStore.getStoreId());
+			storeDTO = DTOMapper.toStoreDTO(updatedStore);
+			return storeDTO;
+
+		} catch (Exception ex) {
+			logger.error("Error occurred while user creating, " + ex.toString());
+			ex.printStackTrace();
+			throw ex;
+		}
+
+	}
 
 }
