@@ -1,7 +1,7 @@
 package sg.edu.nus.iss.voucher.core.workflow.utility;
 
-import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
-import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
+import sg.edu.nus.iss.voucher.core.workflow.dto.*;
+import sg.edu.nus.iss.voucher.core.workflow.entity.*;
 
 public class DTOMapper {
 
@@ -33,7 +33,6 @@ public class DTOMapper {
 		storeDTO.setUpdatedBy(store.getUpdatedBy());
 		return storeDTO;
 	}
-	
 
 	public static StoreDTO toStoreDTO(Store store) {
 		StoreDTO storeDTO = new StoreDTO();
@@ -54,5 +53,31 @@ public class DTOMapper {
 		storeDTO.setCreatedBy(store.getCreatedBy());
 		storeDTO.setUpdatedBy(store.getUpdatedBy());
 		return storeDTO;
+	}
+
+	public static CampaignDTO toCampaignDTO(Campaign campaign) {
+		CampaignDTO campaignDTO = new CampaignDTO();
+		campaignDTO.setCampaignId(campaign.getCampaignId());
+		campaignDTO.setDescription(campaign.getDescription());
+		campaignDTO.setStore(toStoreDTO(campaign.getStore()));
+		campaignDTO.setCampaignStatus(campaign.getCampaignStatus());
+		campaignDTO.setTagsJson(campaign.getTagsJson());
+		campaignDTO.setNumberOfVouchers(campaign.getNumberOfVouchers());
+		campaignDTO.setNumberOfLikes(campaign.getNumberOfLikes());
+		campaignDTO.setPin(campaign.getPin());
+		campaignDTO.setTandc(campaign.getTandc());
+		campaignDTO.setAmount(campaign.getAmount());
+		campaignDTO.setStartDate(campaign.getStartDate());
+		campaignDTO.setEndDate(campaign.getEndDate());
+		campaignDTO.setCreatedBy(campaign.getCreatedBy());
+
+		campaignDTO.setCreatedDate(campaign.getCreatedDate());
+		campaignDTO.setUpdatedBy(campaign.getUpdatedBy());
+		campaignDTO.setUpdatedDate(campaign.getUpdatedDate());
+
+		if (campaign.getVoucher() != null) {
+			campaignDTO.setNumberOfClaimedVouchers(campaign.getVoucher().size());
+		}
+		return campaignDTO;
 	}
 }
