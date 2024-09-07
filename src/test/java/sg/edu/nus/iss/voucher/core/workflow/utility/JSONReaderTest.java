@@ -57,4 +57,23 @@ public class JSONReaderTest {
 	        assertEquals(success, false);
 
 	    }
+	  
+		@Test
+		public void getUserByUserId() throws ParseException {
+			String mockResponse = "{\"totalRecord\":1,\"success\":true,\"data\":{\"userID\":\"testId\",\"email\":\"test1@example.com\",\"username\":\"user1\"}}";
+
+			when(apiCall.getSpecificActiveUser(anyString())).thenReturn(mockResponse);
+
+			HashMap<String, String> result = jsonReader.getUserByUserId("testId");
+			String userId = "";
+
+			for (Map.Entry<String, String> entry : result.entrySet()) {
+				userId = entry.getKey();
+			}
+
+			assertNotNull(result);
+			assertEquals(1, result.size());
+			assertEquals(userId, "testId");
+
+		}
 }

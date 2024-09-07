@@ -196,7 +196,7 @@ public class StoreService implements IStoreService {
 	}
 	
 	@Override
-	public StoreDTO update(Store store, MultipartFile uploadFile) throws Exception {
+	public StoreDTO updateStore(Store store, MultipartFile uploadFile) throws Exception {
 		StoreDTO storeDTO = new StoreDTO();
 		try {
 

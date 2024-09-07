@@ -26,5 +26,5 @@ public interface IStoreService {
 
 	HashMap<String, String> getUserByUserId(String userId) throws Exception;
 	
-	StoreDTO update(Store store, MultipartFile uploadFile) throws Exception;
+	StoreDTO updateStore(Store store, MultipartFile uploadFile) throws Exception;
 }

@@ -216,7 +216,7 @@ public class StoreController {
 				return ResponseEntity.status(validationResult.getStatus()).body(APIResponse.error(message));
 			}
 
-			storeDTO = storeService.update(store, uploadFile);
+			storeDTO = storeService.updateStore(store, uploadFile);
 			message = "Store updated successfully.";
 
 			return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(storeDTO, message));

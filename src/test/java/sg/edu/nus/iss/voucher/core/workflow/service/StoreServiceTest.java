@@ -2,17 +2,24 @@ package sg.edu.nus.iss.voucher.core.workflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -26,10 +33,12 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
+import sg.edu.nus.iss.voucher.core.workflow.controller.StoreController;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.repository.StoreRepository;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
+import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @SpringBootTest
 @Transactional
@@ -46,6 +55,12 @@ public class StoreServiceTest {
 	
 	@Mock
 	private AuthAPICall apiCall;
+	
+	@Autowired
+	private JSONReader jsonReader;
+	
+	private static final Logger logger = LoggerFactory.getLogger(StoreController.class);
+
 
 	private static Store store = new Store("1", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
@@ -151,10 +166,9 @@ public class StoreServiceTest {
 		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
 		MockMultipartFile imageFile = new MockMultipartFile("image", "store.jpg", "image/jpg", "store".getBytes());
 
-		StoreDTO storeDTO = storeService.update(store, imageFile);
+		StoreDTO storeDTO = storeService.updateStore(store, imageFile);
 		assertThat(storeDTO).isNotNull();
 		assertEquals(storeDTO.getDescription(), store.getDescription());
-	}
-	
+	}	
 
 }

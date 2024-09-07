@@ -1,5 +1,7 @@
 package sg.edu.nus.iss.voucher.core.workflow.controller;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -19,6 +21,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
@@ -27,6 +30,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -144,6 +148,28 @@ public class StoreControllerTest {
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.data[0].storeName").value(store1.getStoreName()))
 				.andDo(print());
+
+	}
+	
+	@Test
+	void testUpdateStore() throws Exception {
+
+		store1.setUpdatedBy(store1.getCreatedBy());
+		MockMultipartFile uploadFile = new MockMultipartFile("image", "store.jpg", "image/jpg", "store".getBytes());
+
+		MockMultipartFile store = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
+				objectMapper.writeValueAsBytes(store1));
+
+		Mockito.when(storeService.findByStoreId(store1.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store1));	 
+		 
+		Mockito.when(
+				storeService.updateStore(Mockito.any(Store.class), (MultipartFile) Mockito.any(MultipartFile.class)))
+				.thenReturn(DTOMapper.toStoreDTO(store1));
+
+		mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT,"/api/stores").file(store).file(uploadFile)
+				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isUnauthorized())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
 
 	}
 
