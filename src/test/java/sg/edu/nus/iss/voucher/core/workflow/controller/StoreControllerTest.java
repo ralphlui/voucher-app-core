@@ -1,7 +1,5 @@
 package sg.edu.nus.iss.voucher.core.workflow.controller;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,7 +37,6 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
-import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -53,9 +50,6 @@ public class StoreControllerTest {
 
 	@Autowired
 	private ObjectMapper objectMapper;
-	
-	@Autowired
-	private JSONReader jsonReader;
 	
 	@Autowired
 	AuthAPICall apiCall;

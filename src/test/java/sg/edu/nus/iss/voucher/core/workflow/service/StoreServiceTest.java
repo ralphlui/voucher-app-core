@@ -2,24 +2,16 @@ package sg.edu.nus.iss.voucher.core.workflow.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -33,16 +25,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
-import sg.edu.nus.iss.voucher.core.workflow.controller.StoreController;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.repository.StoreRepository;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
-import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @SpringBootTest
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ActiveProfiles("test")
 public class StoreServiceTest {
 	
@@ -56,12 +46,6 @@ public class StoreServiceTest {
 	@Mock
 	private AuthAPICall apiCall;
 	
-	@Autowired
-	private JSONReader jsonReader;
-	
-	private static final Logger logger = LoggerFactory.getLogger(StoreController.class);
-
-
 	private static Store store = new Store("1", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
@@ -169,6 +153,6 @@ public class StoreServiceTest {
 		StoreDTO storeDTO = storeService.updateStore(store, imageFile);
 		assertThat(storeDTO).isNotNull();
 		assertEquals(storeDTO.getDescription(), store.getDescription());
-	}	
+	}
 
 }
