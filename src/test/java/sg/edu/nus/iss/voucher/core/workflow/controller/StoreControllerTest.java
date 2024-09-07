@@ -63,7 +63,7 @@ public class StoreControllerTest {
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
 			null, null, null, null, false, null, "423edfbf-ec17-471f-b45a-892a75fa9008", "");
-	private static Store store2 = new Store("1", "MUJI",
+	private static Store store2 = new Store("2", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
 			null, null, null, null, false, null, "", "");
@@ -89,6 +89,19 @@ public class StoreControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.message").value("Successfully get all active store.")).andDo(print());
+		
+		List<StoreDTO> emptyMockStores = new ArrayList<>();
+		Map<Long, List<StoreDTO>> emptyMockStoreMap = new HashMap<>();
+		emptyMockStoreMap.put(0L, emptyMockStores);
+		Mockito.when(storeService.getAllActiveStoreList(pageable)).thenReturn(emptyMockStoreMap);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores").param("page", "0").param("size", "10")
+				.contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNotFound())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.message").value("No Active Store List.")).andDo(print());
+		
+		
 	}
 	
 
@@ -128,20 +141,19 @@ public class StoreControllerTest {
 	@Test
 	void testGetAllStoreByUser() throws Exception {
 
-
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("storeName").ascending());
 		Map<Long, List<StoreDTO>> mockStoreMap = new HashMap<>();
 		mockStoreMap.put(0L, mockStores);
 
-		Mockito.when(storeService.findActiveStoreListByUserId(store1.getCreatedBy(), false, pageable)).thenReturn(mockStoreMap);
+		Mockito.when(storeService.findActiveStoreListByUserId(store1.getCreatedBy(), false, pageable))
+				.thenReturn(mockStoreMap);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/users/{userId}", store1.getCreatedBy()).param("page", "0").param("size", "10")
-				.contentType(MediaType.APPLICATION_JSON))
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/users/{userId}", store1.getCreatedBy())
+				.param("page", "0").param("size", "10").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.data[0].storeName").value(store1.getStoreName()))
-				.andDo(print());
+				.andExpect(jsonPath("$.data[0].storeName").value(store1.getStoreName())).andDo(print());
 
 	}
 	
