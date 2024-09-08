@@ -28,7 +28,7 @@ public class AuthAPICall {
 
 	private static final Logger logger = LoggerFactory.getLogger(AuthAPICall.class);
 	
-	public String getSpecificActiveUser(String userId) {
+	public String validateActiveUser(String userId) {
 	    String responseStr = "";
 	    
 	    CloseableHttpClient httpClient = HttpClients.createDefault();

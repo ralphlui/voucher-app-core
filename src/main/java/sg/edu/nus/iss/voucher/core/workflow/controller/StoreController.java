@@ -161,15 +161,15 @@ public class StoreController {
 			}
 
 			logger.info("UserId: " + userid);
-			HashMap<String, String> userMap = storeService.getUserByUserId(userid);
+			HashMap<Boolean, String> userMap = storeService.validateActiveUser(userid);
 			logger.info("user Id key map "+ userMap.keySet());
 			
-			for (Map.Entry<String, String> entry : userMap.entrySet()) {
+			for (Map.Entry<Boolean, String> entry : userMap.entrySet()) {
 				logger.info("user role: " + entry.getValue());
 				logger.info("user id: " + entry.getKey());
 				
-				if (!userid.equals(entry.getKey()) || !entry.getValue().toUpperCase().equals("MERCHANT")) {
-					message = "Invalid user info request.";
+				if (!entry.getKey()) {
+					message = entry.getValue();
 					logger.error(message);
 					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error(message));
 				}

@@ -97,18 +97,14 @@ public class StoreService implements IStoreService {
 
 	@Override
 	public StoreDTO findByStoreName(String storename) {
+		StoreDTO storeDTO = new StoreDTO();
 		try {
 			Store store = storeRepository.findByStoreName(storename);
-			StoreDTO storeDTO = DTOMapper.toStoreDTO(store);
-			if (storeDTO == null) {
-				throw new StoreNotFoundException("Create store failed: Unable to create a new store.");
-			}
-			return storeDTO;
+		    storeDTO = DTOMapper.toStoreDTO(store);
 		} catch (Exception ex) {
 			logger.error("findByStoreId exception... {}", ex.toString());
-			throw ex;
-
 		}
+		return storeDTO;
 
 	}
 	
@@ -160,16 +156,17 @@ public class StoreService implements IStoreService {
 			Page<Store> storePages = storeRepository.findActiveStoreListByUserId(createdBy, isDeleted, pageable);
 			long totalRecord = storePages.getTotalElements();
 			Map<Long, List<StoreDTO>> result = new HashMap<>();
+			List<StoreDTO> storeDTOList = new ArrayList<>();
 
 			if (totalRecord > 0) {
-				List<StoreDTO> storeDTOList = new ArrayList<>();
 				for (Store store : storePages.getContent()) {
 					StoreDTO storeDTO = DTOMapper.mapStoreToResult(store);
 					storeDTOList.add(storeDTO);
 				}
-				result.put(totalRecord, storeDTOList);
 			}
 
+			logger.info("Total record in findActiveStoreListByUserId " + totalRecord);
+			result.put(totalRecord, storeDTOList);
 			return result;
 		} catch (Exception ex) {
 			logger.error("findByIsDeletedFalse exception... {}", ex.toString());
@@ -180,9 +177,9 @@ public class StoreService implements IStoreService {
 	}
 
 	@Override
-	public HashMap<String, String> getUserByUserId(String userId) throws Exception {
+	public HashMap<Boolean, String> validateActiveUser(String userId) throws Exception {
 		try {
-			HashMap<String, String> userMap = jsonReader.getUserByUserId(userId);
+			HashMap<Boolean, String> userMap = jsonReader.validateActiveUser(userId);
 			if (userMap.size() > 0) {
 				return userMap;
 			}
