@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.sns.model.PublishRequest;
 
-import sg.edu.nus.iss.voucher.core.workflow.aws.service.MessagePublishService;
+import sg.edu.nus.iss.voucher.core.workflow.aws.service.SNSPublishingService;
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
@@ -39,7 +39,7 @@ public class CampaignService implements ICampaignService {
 	private StoreRepository storeRepository;
 
 	@Autowired
-	private MessagePublishService messagePublishService;
+	private SNSPublishingService messagePublishService;
 
 	@Override
 	public Map<Long, List<CampaignDTO>> findAllActiveCampaigns(Pageable pageable) {
