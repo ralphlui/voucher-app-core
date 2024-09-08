@@ -84,7 +84,7 @@ public class Campaign {
 	private List<Voucher> voucher;
 	
 	@Column(nullable = true, columnDefinition = "varchar(255)")
-	private String preferences;
+	private String category;
 	
 	@Column(nullable = false, columnDefinition = "boolean default false")
 	private boolean isDeleted;
