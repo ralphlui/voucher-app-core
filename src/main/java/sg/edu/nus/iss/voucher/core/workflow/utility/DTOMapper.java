@@ -81,4 +81,16 @@ public class DTOMapper {
 		}
 		return campaignDTO;
 	}
+	
+	public static VoucherDTO toVoucherDTO(Voucher voucher) {
+		VoucherDTO voucherDTO = new VoucherDTO();
+		voucherDTO.setVoucherId(voucher.getVoucherId());
+		voucherDTO.setCampaign(toCampaignDTO(voucher.getCampaign()));
+		voucherDTO.setVoucherStatus(voucher.getVoucherStatus());
+		voucherDTO.setClaimTime(voucher.getClaimTime());
+		voucherDTO.setConsumedTime(voucher.getConsumedTime());
+		voucherDTO.setClaimedBy(voucher.getClaimedBy());
+		voucherDTO.setAmount(voucherDTO.getCampaign().getAmount());
+		return voucherDTO;
+	}
 }
