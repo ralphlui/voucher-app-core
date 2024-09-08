@@ -53,7 +53,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 
 		StoreDTO storeDTO = storeService.findByStoreName(store.getStoreName());
 		try {
-			if (GeneralUtility.makeNotNull(storeDTO.getStoreName()).equals(store.getStoreName())) {
+			if (GeneralUtility.makeNotNull(storeDTO.getStoreName().toLowerCase()).equals(store.getStoreName().toLowerCase())) {
 				validationResult.setMessage("Store already exists.");
 				validationResult.setStatus(HttpStatus.BAD_REQUEST);
 				validationResult.setValid(false);
@@ -61,7 +61,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 
 			}
 		} catch (Exception ex) {
-			if (storeDTO != null) {
+			if (storeDTO.getStoreId() != null) {
 
 				validationResult.setMessage("Store already exists.");
 				validationResult.setValid(false);
@@ -77,7 +77,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 	public ValidationResult validateObject(String userId) {
 
 		ValidationResult validationResult = new ValidationResult();
-		HashMap<Boolean, String> response = jsonReader.getSpecificActiveUser(userId);
+		HashMap<Boolean, String> response = jsonReader.validateActiveUser(userId);
 		Boolean success = false;
 		String message = "";
 		for (Map.Entry<Boolean, String> entry : response.entrySet()) {

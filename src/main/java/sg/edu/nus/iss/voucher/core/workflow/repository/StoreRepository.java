@@ -16,7 +16,7 @@ public interface StoreRepository extends JpaRepository<Store, String> {
 
 	Page<Store> findByIsDeletedFalse(Pageable pageable);
 	
-	Store findByStoreName(String storename);
+	Store findByStoreName(String storeName);
 	
 	@Query("SELECT s FROM Store s WHERE s.storeId = ?1 AND s.isDeleted = ?2")
 	Optional<Store> findByStoreIdAndStatus(String storeId, Boolean isDeleted);

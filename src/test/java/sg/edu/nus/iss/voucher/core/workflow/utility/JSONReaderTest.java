@@ -30,11 +30,10 @@ public class JSONReaderTest {
 
 	  @Test
 	    public void testGetActiveSpecificUser() throws ParseException {
-	        String mockResponse = "{\"totalRecord\":1,\"success\":true,\"data\":{\"email\":\"test1@example.com\",\"username\":\"user1\"}}";
+			String mockResponse = "{\"totalRecord\":1,\"success\":true,\"data\":{\"userID\":\"US1\",\"email\":\"test1@example.com\",\"username\":\"user1\",\"role\":\"MERCHANT\"}}";
+	        when(apiCall.validateActiveUser(anyString())).thenReturn(mockResponse);
 
-	        when(apiCall.getSpecificActiveUser(anyString())).thenReturn(mockResponse);
-
-	        HashMap<Boolean, String> result = jsonReader.getSpecificActiveUser("testId");
+	        HashMap<Boolean, String> result = jsonReader.validateActiveUser("US1");
 	        Boolean success = false;
 	        
 	        for (Map.Entry<Boolean, String> entry : result.entrySet()) {
@@ -47,8 +46,8 @@ public class JSONReaderTest {
 	        
 	        mockResponse = "{\"totalRecord\":0,\"success\":false,\"data\": null}";
 
-	        when(apiCall.getSpecificActiveUser(anyString())).thenReturn(mockResponse);
-	        result = jsonReader.getSpecificActiveUser("testId");
+	        when(apiCall.validateActiveUser(anyString())).thenReturn(mockResponse);
+	        result = jsonReader.validateActiveUser("testId");
 	        
 	        for (Map.Entry<Boolean, String> entry : result.entrySet()) {
 				success = entry.getKey();
@@ -57,23 +56,4 @@ public class JSONReaderTest {
 	        assertEquals(success, false);
 
 	    }
-	  
-		@Test
-		public void getUserByUserId() throws ParseException {
-			String mockResponse = "{\"totalRecord\":1,\"success\":true,\"data\":{\"userID\":\"testId\",\"email\":\"test1@example.com\",\"username\":\"user1\"}}";
-
-			when(apiCall.getSpecificActiveUser(anyString())).thenReturn(mockResponse);
-
-			HashMap<String, String> result = jsonReader.getUserByUserId("testId");
-			String userId = "";
-
-			for (Map.Entry<String, String> entry : result.entrySet()) {
-				userId = entry.getKey();
-			}
-
-			assertNotNull(result);
-			assertEquals(1, result.size());
-			assertEquals(userId, "testId");
-
-		}
 }

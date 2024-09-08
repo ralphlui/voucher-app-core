@@ -24,7 +24,7 @@ public interface IStoreService {
 	
 	Map<Long, List<StoreDTO>> findActiveStoreListByUserId(String createdBy, boolean isDeleted,Pageable pageable);
 
-	HashMap<String, String> getUserByUserId(String userId) throws Exception;
+	HashMap<Boolean, String> validateActiveUser(String userId) throws Exception;
 	
 	StoreDTO updateStore(Store store, MultipartFile uploadFile) throws Exception;
 }
