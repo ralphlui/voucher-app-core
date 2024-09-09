@@ -60,7 +60,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			return validationResult;
 		}
 
-		/*StoreDTO storeDTO = storeService.findByStoreId(campaign.getStore().getStoreId());
+		StoreDTO storeDTO = storeService.findByStoreId(campaign.getStore().getStoreId());
 
 		if (storeDTO == null || storeDTO.getStoreId() == null || storeDTO.getStoreId().isEmpty()) {
 			validationResult.setMessage("Invalid store Id: " + campaign.getStore().getStoreId());
@@ -69,14 +69,14 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			return validationResult;
 		}
 
-		User user = userService.findByEmailAndStatus(campaign.getCreatedBy().getEmail(), true, true);
+		String userId = campaign.getCreatedBy();
 
-		if (user == null || user.getEmail() == null || user.getEmail().isEmpty()) {
-			validationResult.setMessage("Invalid User : " + campaign.getCreatedBy().getEmail());
+		if (userId == null || userId.isEmpty()) {
+			validationResult.setMessage("Invalid User : " + campaign.getCreatedBy());
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
 			validationResult.setValid(false);
 			return validationResult;
-		}*/
+		}
 
 		validationResult.setValid(true);
 		return validationResult;
@@ -95,14 +95,14 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			return validationResult;
 		}
 
-		/*User user = userService.findByEmailAndStatus(campaign.getUpdatedBy().getEmail(), true, true);
+		String userId = campaign.getUpdatedBy();
 
-		if (user == null || user.getEmail() == null || user.getEmail().isEmpty()) {
-			validationResult.setMessage("Invalid User : " + campaign.getUpdatedBy().getEmail());
+		if (userId == null || userId.isEmpty()) {
+			validationResult.setMessage("Invalid User : " + campaign.getUpdatedBy());
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
 			validationResult.setValid(false);
 			return validationResult;
-		}*/
+		}
 
 		Optional<Campaign> dbCampaign = campaignService.findById(campaignId);
 		if (dbCampaign.isEmpty()) {
@@ -127,6 +127,13 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 	@Override
 	public ValidationResult validateObject(String campaignId) {
 		ValidationResult validationResult = new ValidationResult();
+		
+		if(campaignId == null || campaignId.isEmpty()) {
+			validationResult.setMessage("Campaign Id could not be blank.");
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			validationResult.setValid(false);
+			return validationResult;
+		}
 		Optional<Campaign> dbCampaign = campaignService.findById(campaignId);
 		LocalDateTime startDate = dbCampaign.get().getStartDate();
 		LocalDateTime endDate = dbCampaign.get().getEndDate();

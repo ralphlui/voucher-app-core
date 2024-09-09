@@ -148,10 +148,9 @@ public class CampaignService implements ICampaignService {
 		CampaignDTO campaignDTO = new CampaignDTO();
 		try {
 
-			//User user = userRepository.findByEmail(campaign.getCreatedBy().getEmail());
 			Store store = storeRepository.findById(campaign.getStore().getStoreId()).orElseThrow();
 			campaign.setPin(String.valueOf(new Random().nextInt(9000) + 1000));
-			//campaign.setCreatedBy(user);
+			campaign.setCreatedBy(campaign.getCreatedBy());
 			campaign.setCreatedDate(LocalDateTime.now());
 			campaign.setStore(store);
 			logger.info("Saving campaign...");
@@ -171,7 +170,7 @@ public class CampaignService implements ICampaignService {
 		CampaignDTO campaignDTO = new CampaignDTO();
 		try {
 			Optional<Campaign> dbCampaign = campaignRepository.findById(campaign.getCampaignId());
-			//User user = userRepository.findByEmail(campaign.getUpdatedBy().getEmail());
+			
 			dbCampaign.get().setDescription(GeneralUtility.makeNotNull(campaign.getDescription()));
 			dbCampaign.get().setAmount(campaign.getAmount());
 			dbCampaign.get().setStartDate(campaign.getStartDate());
@@ -180,7 +179,7 @@ public class CampaignService implements ICampaignService {
 			dbCampaign.get().setNumberOfVouchers(campaign.getNumberOfVouchers());
 			dbCampaign.get().setTagsJson(GeneralUtility.makeNotNull(campaign.getTagsJson()));
 			dbCampaign.get().setTandc(GeneralUtility.makeNotNull(campaign.getTandc()));
-			//dbCampaign.get().setUpdatedBy(user);
+			dbCampaign.get().setUpdatedBy(campaign.getUpdatedBy());
 			dbCampaign.get().setUpdatedDate(LocalDateTime.now());
 			logger.info("Update campaign...");
 			Campaign savedCampaign = campaignRepository.save(dbCampaign.get());
@@ -197,7 +196,7 @@ public class CampaignService implements ICampaignService {
 	}
 
 	@Override
-	public CampaignDTO promote(String campaignId) {
+	public CampaignDTO promote(String campaignId,String userId) {
 		CampaignDTO campaignDTO = new CampaignDTO();
 		try {
 
@@ -205,8 +204,6 @@ public class CampaignService implements ICampaignService {
 			if (dbCampaign.isPresent()) {
 				logger.info("Promoting campaign: status {}..", dbCampaign.get().getCampaignStatus());
 				if (dbCampaign.get().getCampaignStatus().equals(CampaignStatus.CREATED)) {
-
-					//User user = userRepository.findByEmail(campaign.getUpdatedBy().getEmail());
 
 					LocalDateTime startDate = dbCampaign.get().getStartDate();
 					LocalDateTime endDate = dbCampaign.get().getEndDate();
@@ -216,7 +213,7 @@ public class CampaignService implements ICampaignService {
 					if ((startDate.isAfter(LocalDateTime.now()) || startDate.equals(LocalDateTime.now()))
 							&& endDate.isAfter(LocalDateTime.now())) {
 						dbCampaign.get().setCampaignStatus(CampaignStatus.PROMOTED);
-						//dbCampaign.get().setUpdatedBy(user);
+						dbCampaign.get().setUpdatedBy(userId);
 						dbCampaign.get().setUpdatedDate(LocalDateTime.now());
 						Campaign promottedCampaign = campaignRepository.save(dbCampaign.get());
 						logger.info("Promotted successfully...");
