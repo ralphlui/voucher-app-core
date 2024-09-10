@@ -1,6 +1,5 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,8 +22,6 @@ public interface IStoreService {
 	StoreDTO findByStoreId(String storeId);
 	
 	Map<Long, List<StoreDTO>> findActiveStoreListByUserId(String createdBy, boolean isDeleted,Pageable pageable);
-
-	HashMap<Boolean, String> validateActiveUser(String userId) throws Exception;
 	
 	StoreDTO updateStore(Store store, MultipartFile uploadFile) throws Exception;
 }

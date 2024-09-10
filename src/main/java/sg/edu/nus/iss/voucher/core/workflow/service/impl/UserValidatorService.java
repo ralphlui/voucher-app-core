@@ -49,7 +49,8 @@ public class UserValidatorService {
 	                return resultMap;
 	            }
 	        }
-
+	        logger.info("validateActiveUser message "+ message);
+	        logger.info("validateActiveUser success "+ success);
 	        resultMap.put(success, message);
 
 	    } catch (ParseException e) {

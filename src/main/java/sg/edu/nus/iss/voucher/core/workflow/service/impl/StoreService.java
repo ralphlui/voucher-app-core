@@ -175,22 +175,6 @@ public class StoreService implements IStoreService {
 		}
 
 	}
-
-	@Override
-	public HashMap<Boolean, String> validateActiveUser(String userId) throws Exception {
-		try {
-			HashMap<Boolean, String> userMap = jsonReader.validateActiveUser(userId);
-			if (userMap.size() > 0) {
-				return userMap;
-			}
-			throw new Exception("Invalid user Info");
-			
-		} catch (Exception ex) {
-			logger.error("findByIsDeletedFalse exception... {}", ex.toString());
-			throw ex;
-
-		}
-	}
 	
 	@Override
 	public StoreDTO updateStore(Store store, MultipartFile uploadFile) throws Exception {
