@@ -1,7 +1,9 @@
 package sg.edu.nus.iss.voucher.core.workflow.strategy.impl;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.IAPIHelperValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
+import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @Service
 public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<Campaign> {
@@ -27,6 +30,8 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 	@Autowired
 	private StoreService storeService;
 
+	@Autowired
+	private JSONReader jsonReader;
 
 	@Override
 	public ValidationResult validateCreation(Campaign campaign, MultipartFile val) {
@@ -70,11 +75,8 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 		}
 
 		String userId = campaign.getCreatedBy();
-
-		if (userId == null || userId.isEmpty()) {
-			validationResult.setMessage("Invalid User : " + campaign.getCreatedBy());
-			validationResult.setStatus(HttpStatus.BAD_REQUEST);
-			validationResult.setValid(false);
+		validationResult = validateUser(userId);	
+		if(!validationResult.isValid()) {
 			return validationResult;
 		}
 
@@ -96,11 +98,8 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 		}
 
 		String userId = campaign.getUpdatedBy();
-
-		if (userId == null || userId.isEmpty()) {
-			validationResult.setMessage("Invalid User : " + campaign.getUpdatedBy());
-			validationResult.setStatus(HttpStatus.BAD_REQUEST);
-			validationResult.setValid(false);
+		validationResult = validateUser(userId);	
+		if(!validationResult.isValid()) {
 			return validationResult;
 		}
 
@@ -127,14 +126,15 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 	@Override
 	public ValidationResult validateObject(String campaignId) {
 		ValidationResult validationResult = new ValidationResult();
-		
-		if(campaignId == null || campaignId.isEmpty()) {
+
+		if (campaignId == null || campaignId.isEmpty()) {
 			validationResult.setMessage("Campaign Id could not be blank.");
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
 			validationResult.setValid(false);
 			return validationResult;
 		}
 		Optional<Campaign> dbCampaign = campaignService.findById(campaignId);
+		if(dbCampaign !=null && !dbCampaign.isEmpty()) {
 		LocalDateTime startDate = dbCampaign.get().getStartDate();
 		LocalDateTime endDate = dbCampaign.get().getEndDate();
 
@@ -144,7 +144,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			validationResult.setValid(false);
 			return validationResult;
 		}
-
+		
 		if (endDate.isBefore(LocalDateTime.now())) {
 			validationResult.setMessage("EndDate " + endDate + " should not be less than current date ");
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
@@ -158,9 +158,43 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			validationResult.setValid(false);
 			return validationResult;
 		}
+		}else {
+			validationResult.setMessage("Campaign Id is invalid.");
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			validationResult.setValid(false);
+			return validationResult;
+		}
 
 		validationResult.setValid(true);
 		return validationResult;
+	}
+
+	public ValidationResult validateUser(String userId) {
+		ValidationResult validationResult = new ValidationResult();
+		
+		if (userId == null || userId.isEmpty()) {
+			validationResult.setMessage("User Id could not be blank.");
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			validationResult.setValid(false);
+			return validationResult;
+		}
+
+		HashMap<Boolean, String> userMap = jsonReader.validateActiveUser(userId);
+
+		for (Map.Entry<Boolean, String> entry : userMap.entrySet()) {
+
+			if (!entry.getKey()) {
+				validationResult.setMessage("Invalid User : " + userId);
+				validationResult.setStatus(HttpStatus.BAD_REQUEST);
+				validationResult.setValid(false);
+				return validationResult;
+
+			}
+		}
+
+		validationResult.setValid(true);
+		return validationResult;
+
 	}
 
 }

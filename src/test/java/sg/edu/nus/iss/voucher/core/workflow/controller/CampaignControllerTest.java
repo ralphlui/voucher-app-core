@@ -13,6 +13,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,10 +33,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import net.minidev.json.writer.JsonReader;
+import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
+import sg.edu.nus.iss.voucher.core.workflow.strategy.impl.CampaignValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
 
 @SpringBootTest
@@ -55,6 +60,15 @@ public class CampaignControllerTest {
 	
 	@MockBean
 	private StoreService storeService;
+	
+	@MockBean
+	private AuthAPICall authAPICall; 
+
+	@InjectMocks
+	private CampaignController campaignController;
+	
+	@Mock
+    private CampaignValidationStrategy campaignValidationStrategy;
 
 	private static List<CampaignDTO> mockCampaigns = new ArrayList<>();
 	
@@ -76,6 +90,7 @@ public class CampaignControllerTest {
 	static void setUp() {
 		mockCampaigns.add(DTOMapper.toCampaignDTO(campaign1));
 		mockCampaigns.add(DTOMapper.toCampaignDTO(campaign2));
+		
 	}
 
 	@Test
@@ -156,8 +171,11 @@ public class CampaignControllerTest {
 	@Test
 	void testCreateCampaign() throws Exception {
 		
-		Mockito.when(campaignService.create(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
+		String mockResponse="{\"success\":true,\"message\":\"eleven.11@gmail.com is Active\",\"totalRecord\":1,\"data\":{\"userID\":\""+userId+"\",\"email\":\"eleven.11@gmail.com\",\"username\":\"Eleven11\",\"role\":\"MERCHANT\",\"preferences\":[\"food\",\"household\",\"clothing\"],\"active\":true,\"verified\":true}}"; 
+		Mockito.when(authAPICall.validateActiveUser(userId)).thenReturn(mockResponse);
 		Mockito.when(storeService.findByStoreId(store.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store));
+		
+		Mockito.when(campaignService.create(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/campaigns").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(campaign1))).andExpect(MockMvcResultMatchers.status().isOk())
@@ -171,6 +189,9 @@ public class CampaignControllerTest {
 		
 		campaign1.setDescription("new desc");
 		campaign1.setUpdatedBy(userId);
+		
+		String mockResponse="{\"success\":true,\"message\":\"eleven.11@gmail.com is Active\",\"totalRecord\":1,\"data\":{\"userID\":\""+userId+"\",\"email\":\"eleven.11@gmail.com\",\"username\":\"Eleven11\",\"role\":\"MERCHANT\",\"preferences\":[\"food\",\"household\",\"clothing\"],\"active\":true,\"verified\":true}}"; 
+		Mockito.when(authAPICall.validateActiveUser(userId)).thenReturn(mockResponse);
 		Mockito.when(campaignService.update(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
 		
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/campaigns/{id}",campaign1.getCampaignId())
@@ -183,28 +204,30 @@ public class CampaignControllerTest {
 	
 	@Test
 	void testPromoteCampaign() throws Exception {
-	    
+		
 	    campaign1.setStartDate(LocalDateTime.now().plusDays(10));
 	    campaign1.setEndDate(LocalDateTime.now().plusDays(20));
 	    campaign1.setCampaignStatus(CampaignStatus.CREATED);
-		
-	    String userId="user123";
-	
-	    Mockito.when(campaignService.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
-	    Mockito.when(campaignService.promote(campaign1.getCampaignId(),userId)).thenReturn(DTOMapper.toCampaignDTO(campaign1));
-
-	    mockMvc.perform(MockMvcRequestBuilders.patch("/api/campaigns/{campaignId}/users/{userId}/promote", campaign1.getCampaignId(), "user123")
-	            .contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(MockMvcResultMatchers.status().isOk())
-	            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-	            .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
-	            .andDo(print());
-	}
+	    campaign1.setUpdatedBy(userId);
+	    String mockResponse="{\"success\":true,\"message\":\"eleven.11@gmail.com is Active\",\"totalRecord\":1,\"data\":{\"userID\":\""+userId+"\",\"email\":\"eleven.11@gmail.com\",\"username\":\"Eleven11\",\"role\":\"MERCHANT\",\"preferences\":[\"food\",\"household\",\"clothing\"],\"active\":true,\"verified\":true}}"; 
+	   
+	    Mockito.when(authAPICall.validateActiveUser(userId)).thenReturn(mockResponse);
+        Mockito.when(campaignService.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
+        Mockito.when(campaignService.promote(campaign1.getCampaignId(), userId))
+                .thenReturn(DTOMapper.toCampaignDTO(campaign1));
+        
+        mockMvc.perform(MockMvcRequestBuilders
+                        .patch("/api/campaigns/{campaignId}/users/{userId}/promote", campaign1.getCampaignId(), userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)) 
+                .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true))
+                .andDo(print()); 
+    }
 
 	
 	@Test
 	void testGetByCampaignId() throws Exception {
-
 		
 		Mockito.when(campaignService.findByCampaignId(campaign1.getCampaignId()))
 				.thenReturn(DTOMapper.toCampaignDTO(campaign1));

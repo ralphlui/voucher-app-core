@@ -34,7 +34,7 @@ public class AuthAPICall {
 	    CloseableHttpClient httpClient = HttpClients.createDefault();
 	    try {
 	    	String encodedUserId = URLEncoder.encode(userId.trim(), StandardCharsets.UTF_8.toString());
-	        String url = authURL.trim() + encodedUserId + "/active";
+	        String url = authURL.trim() +"/"+ encodedUserId + "/active";
 	        logger.info("getSpeicficActiveUsers url : " + url);
 	        RequestConfig config = RequestConfig.custom()
 	                .setConnectTimeout(30000)
