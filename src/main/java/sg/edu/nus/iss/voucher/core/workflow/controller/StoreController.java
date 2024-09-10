@@ -27,6 +27,7 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.ValidationResult;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.exception.StoreNotFoundException;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.impl.StoreValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 
@@ -44,6 +45,10 @@ public class StoreController {
 	
 	@Autowired
 	private StoreValidationStrategy storeValidationStrategy;
+	
+	@Autowired
+	private UserValidatorService userValidatorService;
+
 
 
 	@GetMapping(value = "", produces = "application/json")
@@ -161,7 +166,7 @@ public class StoreController {
 			}
 
 			logger.info("UserId: " + userid);
-			HashMap<Boolean, String> userMap = storeService.validateActiveUser(userid);
+			HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userid, "MERCHANT");
 			logger.info("user Id key map "+ userMap.keySet());
 			
 			for (Map.Entry<Boolean, String> entry : userMap.entrySet()) {

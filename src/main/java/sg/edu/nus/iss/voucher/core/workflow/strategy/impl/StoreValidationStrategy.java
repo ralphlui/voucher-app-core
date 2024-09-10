@@ -12,9 +12,9 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.dto.ValidationResult;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.IAPIHelperValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
-import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @Service
 public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Store> {
@@ -23,7 +23,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 	private StoreService storeService;
 	
 	@Autowired
-	private JSONReader jsonReader;
+	private UserValidatorService userValidatorService;
 
 	@Override
 	public ValidationResult validateCreation(Store store, MultipartFile val) {
@@ -77,7 +77,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 	public ValidationResult validateObject(String userId) {
 
 		ValidationResult validationResult = new ValidationResult();
-		HashMap<Boolean, String> response = jsonReader.validateActiveUser(userId);
+		HashMap<Boolean, String> response = userValidatorService.validateActiveUser(userId, "MERCHANT");
 		Boolean success = false;
 		String message = "";
 		for (Map.Entry<Boolean, String> entry : response.entrySet()) {

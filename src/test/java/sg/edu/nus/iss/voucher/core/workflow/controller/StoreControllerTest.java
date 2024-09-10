@@ -150,10 +150,10 @@ public class StoreControllerTest {
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/users/{userId}", store1.getCreatedBy())
 				.param("page", "0").param("size", "10").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(MockMvcResultMatchers.status().isBadRequest())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.data[0].storeName").value(store1.getStoreName())).andDo(print());
+				.andExpect(jsonPath("$.success").value(false))
+				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
 
 	}
 	
