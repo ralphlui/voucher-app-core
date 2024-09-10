@@ -1,6 +1,8 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.any;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.times;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +27,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import sg.edu.nus.iss.voucher.core.workflow.aws.service.SNSPublishingService;
 import sg.edu.nus.iss.voucher.core.workflow.dto.CampaignDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
@@ -35,16 +40,22 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
 @ActiveProfiles("test")
 public class CampaignServiceTest {
 
-	@MockBean
+	@Mock
 	private CampaignRepository campaignRepository;
 
-	@MockBean
+	@Mock
 	private StoreRepository storeRepository;	
 
-	@Autowired
+	@InjectMocks
 	private CampaignService campaignService;
+	
+	@Mock
+	private SNSPublishingService messagePublishService;
+
 
 	private static List<Campaign> mockCampaigns = new ArrayList<>();
+	
+	static String userId ="user123";
 	
 	private static Store store = new Store("1", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
@@ -52,10 +63,10 @@ public class CampaignServiceTest {
 			null, null, null, null, false, null, "", "");
 
 	private static Campaign campaign1 = new Campaign("1", "new campaign 1", store, CampaignStatus.CREATED, null, 10, 0,
-			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), "test1@gmail.com", "", LocalDateTime.now(),
+			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), userId, "", LocalDateTime.now(),
 			LocalDateTime.now(), null,"Clothes", false);
 	private static Campaign campaign2 = new Campaign("2", "new campaign 2", store, CampaignStatus.CREATED, null, 10, 0,
-			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), "test2@gmail.com", "", LocalDateTime.now(),
+			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), userId, "", LocalDateTime.now(),
 			LocalDateTime.now(), null,"Clothes", false);
 
 
@@ -135,9 +146,11 @@ public class CampaignServiceTest {
 
 	@Test
 	void createCampaign() {
+		String userId= "user123";
+		campaign1.setCreatedBy(userId);
 		Mockito.when(campaignRepository.save(Mockito.any(Campaign.class))).thenReturn(campaign1);
 		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
-		//Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+		
 		Mockito.when(campaignRepository.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
 		CampaignDTO campaignDTO = campaignService.create(campaign1);
 		assertEquals(campaignDTO.getCreatedBy(), campaign1.getCreatedBy());
@@ -149,7 +162,7 @@ public class CampaignServiceTest {
 	void updateCampaign() {
 		Mockito.when(campaignRepository.save(Mockito.any(Campaign.class))).thenReturn(campaign1);
 		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
-		//Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
+		
 		Mockito.when(campaignRepository.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
 		campaign1.setDescription("test update");
 		campaign1.setCampaignStatus(CampaignStatus.CREATED);
@@ -173,11 +186,12 @@ public class CampaignServiceTest {
 
 		campaign1.setStartDate(startDate);
 		campaign1.setEndDate(endDate);
+		campaign1.setUpdatedBy(userId);
 		Mockito.when(campaignRepository.save(Mockito.any(Campaign.class))).thenReturn(campaign1);
 		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
 		Mockito.when(campaignRepository.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
-		//Mockito.when(userRepository.findByEmail(user.getEmail())).thenReturn(user);
-		CampaignDTO campaignDTO = campaignService.promote(campaign1.getCampaignId());
+		
+		CampaignDTO campaignDTO = campaignService.promote(campaign1.getCampaignId(),campaign1.getUpdatedBy());
 		assertEquals(campaignDTO.getCampaignStatus(), CampaignStatus.PROMOTED);
 	}
 
@@ -201,6 +215,31 @@ public class CampaignServiceTest {
 		assertEquals(mockCampaigns.size(), campaignDTOList.size());
 		assertEquals(mockCampaigns.get(0).getCampaignId(), campaignDTOList.get(0).getCampaignId());
 		assertEquals(mockCampaigns.get(1).getCampaignId(), campaignDTOList.get(1).getCampaignId());
+	}
+	
+	@Test
+	void testExpiredCampaigns() {
+
+	    campaign1.setEndDate(LocalDateTime.now().minusDays(2));
+	    campaign2.setEndDate(LocalDateTime.now().minusDays(3));
+
+	    Mockito.when(campaignRepository.findByEndDateBefore(Mockito.any(LocalDateTime.class)))
+	        .thenReturn(Arrays.asList(campaign1, campaign2));
+
+	    Mockito.when(campaignRepository.save(Mockito.any(Campaign.class)))
+	        .thenAnswer(invocation -> {
+	            Campaign campaign = invocation.getArgument(0);
+	            campaign.setCampaignStatus(CampaignStatus.EXPIRED);  // Simulate setting the status to EXPIRED
+	            return campaign;
+	        });
+
+	    List<Campaign> result = campaignService.expired();
+
+	    assertEquals(2, result.size(), "Expected 2 expired campaigns");
+
+	    assertEquals(CampaignStatus.EXPIRED, result.get(0).getCampaignStatus(), "First campaign should be expired");
+	    assertEquals(CampaignStatus.EXPIRED, result.get(1).getCampaignStatus(), "Second campaign should be expired");
+
 	}
 
 }

@@ -30,7 +30,6 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.impl.CampaignValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.*;
 
-
 @RestController
 @Validated
 @RequestMapping("/api/campaigns")
@@ -83,14 +82,13 @@ public class CampaignController {
 	}
 
 	@GetMapping(value = "/stores/{storeId}", produces = "application/json")
-	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllCampaignsByStoreId(@PathVariable("storeId") String storeId,
-			@RequestParam(defaultValue = "") String status,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size) {
+	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllCampaignsByStoreId(
+			@PathVariable("storeId") String storeId, @RequestParam(defaultValue = "") String status,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		logger.info("Calling Campaign getAllCampaignsByStoreId API with page={}, size={}", page, size);
 
 		try {
-			 storeId = GeneralUtility.makeNotNull(storeId).trim();
+			storeId = GeneralUtility.makeNotNull(storeId).trim();
 			if (storeId.isEmpty()) {
 				logger.error("Bad Request: Store ID could not be blank.");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -144,13 +142,12 @@ public class CampaignController {
 
 	@GetMapping(value = "/users/{userId}", produces = "application/json")
 	public ResponseEntity<APIResponse<List<CampaignDTO>>> getCampaignsByUserId(@PathVariable("userId") String userId,
-			@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size) {
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		long totalRecord = 0;
 		try {
 			logger.info("Calling Campaign getAllCampaignsByEmail API with page={}, size={}", page, size);
 
-			 userId = GeneralUtility.makeNotNull(userId).trim();
+			userId = GeneralUtility.makeNotNull(userId).trim();
 
 			if (!userId.equals("")) {
 				Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
@@ -258,27 +255,37 @@ public class CampaignController {
 		}
 	}
 
-	@PutMapping(value = "", produces = "application/json")
-	public ResponseEntity<APIResponse<CampaignDTO>> updateCampaign(@RequestBody Campaign campaign) {
+	@PutMapping(value = "/{id}", produces = "application/json")
+	public ResponseEntity<APIResponse<CampaignDTO>> updateCampaign(@PathVariable("id") String id,
+			@RequestBody Campaign campaign) {
 		try {
 			logger.info("Calling Campaign update API...");
 			String message = "";
-			ValidationResult validationResult = campaignValidationStrategy.validateUpdating(campaign, null);
-			if (validationResult.isValid()) {
-				CampaignDTO campaignDTO = campaignService.update(campaign);
-				if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
-					return ResponseEntity.status(HttpStatus.OK)
-							.body(APIResponse.success(campaignDTO, "Updated sucessfully"));
-				} else {
-					logger.error("Calling Campaign create API failed...");
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-							APIResponse.error("Update Campaign failed:  campaignId: " + campaign.getCampaignId()));
-				}
+			String campaignId = GeneralUtility.makeNotNull(id).trim();
 
+			if (!campaignId.equals("")) {
+				campaign.setCampaignId(campaignId);
+				ValidationResult validationResult = campaignValidationStrategy.validateUpdating(campaign, null);
+				if (validationResult.isValid()) {
+					CampaignDTO campaignDTO = campaignService.update(campaign);
+					if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
+						return ResponseEntity.status(HttpStatus.OK)
+								.body(APIResponse.success(campaignDTO, "Updated sucessfully"));
+					} else {
+						logger.error("Calling Campaign create API failed...");
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+								APIResponse.error("Update Campaign failed:  campaignId: " + campaign.getCampaignId()));
+					}
+
+				} else {
+					message = validationResult.getMessage();
+					logger.error(message);
+					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+				}
 			} else {
-				message = validationResult.getMessage();
-				logger.error(message);
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+				logger.error("Bad Request:Campaign ID could not be blank.");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body(APIResponse.error("Bad Request:CampaignId could not be blank."));
 			}
 
 		} catch (Exception ex) {
@@ -287,9 +294,9 @@ public class CampaignController {
 		}
 	}
 
-
 	@PatchMapping(value = "/{campaignId}/users/{userId}/promote", produces = "application/json")
-	public ResponseEntity<APIResponse<CampaignDTO>> promoteCampaign(@PathVariable("campaignId") String campaignId,@PathVariable("userId") String userId) {
+	public ResponseEntity<APIResponse<CampaignDTO>> promoteCampaign(@PathVariable("campaignId") String campaignId,
+			@PathVariable("userId") String userId) {
 		try {
 			logger.info("Calling Campaign Promote API...");
 
@@ -299,8 +306,14 @@ public class CampaignController {
 				logger.error(message);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
 			}
+			
+			if(userId == null || userId.isEmpty()) {
+				logger.error("Bad Request:UserId could not be blank for Campaign promote.");
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body(APIResponse.error("Bad Request:UserId could not be blank for Campaign promote."));
+			}
 
-			CampaignDTO campaignDTO = campaignService.promote(campaignId);
+			CampaignDTO campaignDTO = campaignService.promote(campaignId,userId);
 			if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
 				return ResponseEntity.status(HttpStatus.OK)
 						.body(APIResponse.success(campaignDTO, "Campaign promoted successfully"));
@@ -315,6 +328,5 @@ public class CampaignController {
 			throw ex;
 		}
 	}
-
 
 }

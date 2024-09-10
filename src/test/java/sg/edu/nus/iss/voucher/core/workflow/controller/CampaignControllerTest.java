@@ -58,16 +58,18 @@ public class CampaignControllerTest {
 
 	private static List<CampaignDTO> mockCampaigns = new ArrayList<>();
 	
+	static String userId ="user123";
+	
 	private static Store store = new Store("1", "MUJI",
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
 			null, null, null, null, false, null, "", "");
 
 	private static Campaign campaign1 = new Campaign("1", "new campaign 1", store, CampaignStatus.CREATED, null, 10, 0,
-			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), "test1@gmail.com", "", LocalDateTime.now(),
+			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), userId, "", LocalDateTime.now(),
 			LocalDateTime.now(), null,"Clothes", false);
 	private static Campaign campaign2 = new Campaign("2", "new campaign 2", store, CampaignStatus.CREATED, null, 10, 0,
-			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), "test2@gmail.com", "", LocalDateTime.now(),
+			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), userId, "", LocalDateTime.now(),
 			LocalDateTime.now(), null,"Clothes", false);
 
 	@BeforeAll
@@ -94,17 +96,13 @@ public class CampaignControllerTest {
 	
 	@Test
     void testGetAllActiveCampaigns_whenNoCampaignsFound() throws Exception {
-        // Mock empty resultMap
+        
         Map<Long, List<CampaignDTO>> mockCampaignMap = new HashMap<>();
 
-        // Mock pageable
         Pageable pageable = PageRequest.of(0, 10, Sort.by("startDate").ascending());
 
-        // Mock behavior of campaignService
         Mockito.when(campaignService.findAllActiveCampaigns(pageable)).thenReturn(mockCampaignMap);
 
-
-        // Perform GET request and assert the response
         mockMvc.perform(MockMvcRequestBuilders.get("/api/campaigns")
                 .param("page", "0").param("size", "10")
                 .contentType(MediaType.APPLICATION_JSON))
@@ -134,7 +132,7 @@ public class CampaignControllerTest {
 	
 	@Test
     void testGetCampaignsByUserId() throws Exception {
-        String userId = "testUser@example.com";
+       
         int page = 0;
         int size = 10;
 
@@ -157,9 +155,9 @@ public class CampaignControllerTest {
 
 	@Test
 	void testCreateCampaign() throws Exception {
+		
 		Mockito.when(campaignService.create(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
-		//Mockito.when(storeService.findByStoreId(store.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store));
-		//Mockito.when(userService.findByEmailAndStatus(user.getEmail(),true,true)).thenReturn(user);
+		Mockito.when(storeService.findByStoreId(store.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store));
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/campaigns").contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(campaign1))).andExpect(MockMvcResultMatchers.status().isOk())
@@ -170,13 +168,15 @@ public class CampaignControllerTest {
 	@Test
 	void testUpdateCampaign() throws Exception {
 		Mockito.when(campaignService.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
-		//Mockito.when(userService.findByEmailAndStatus(user.getEmail(),true,true)).thenReturn(user);
 		
 		campaign1.setDescription("new desc");
+		campaign1.setUpdatedBy(userId);
 		Mockito.when(campaignService.update(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/campaigns").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(campaign1))).andExpect(MockMvcResultMatchers.status().isOk())
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/campaigns/{id}",campaign1.getCampaignId())
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(campaign1)))
+				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
 	}
@@ -188,14 +188,11 @@ public class CampaignControllerTest {
 	    campaign1.setEndDate(LocalDateTime.now().plusDays(20));
 	    campaign1.setCampaignStatus(CampaignStatus.CREATED);
 		
-		//Mockito.when(userService.findByEmailAndStatus(user.getEmail(),true,true)).thenReturn(user);
-		
+	    String userId="user123";
 	
-	    // Mock the campaign lookup and promotion logic
 	    Mockito.when(campaignService.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
-	    Mockito.when(campaignService.promote(campaign1.getCampaignId())).thenReturn(DTOMapper.toCampaignDTO(campaign1));
+	    Mockito.when(campaignService.promote(campaign1.getCampaignId(),userId)).thenReturn(DTOMapper.toCampaignDTO(campaign1));
 
-	    // Perform the PATCH request
 	    mockMvc.perform(MockMvcRequestBuilders.patch("/api/campaigns/{campaignId}/users/{userId}/promote", campaign1.getCampaignId(), "user123")
 	            .contentType(MediaType.APPLICATION_JSON))
 	            .andExpect(MockMvcResultMatchers.status().isOk())
@@ -218,7 +215,6 @@ public class CampaignControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
 	}
-
 	
 
 }
