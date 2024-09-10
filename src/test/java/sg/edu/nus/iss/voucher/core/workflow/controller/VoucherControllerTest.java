@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,6 +56,9 @@ public class VoucherControllerTest {
 	@MockBean
 	private CampaignService campaignService;
 	
+	@MockBean
+	private UserValidatorService userValidatorService;
+	
 	@Autowired
 	private ObjectMapper objectMapper;
 	
@@ -90,11 +94,14 @@ public class VoucherControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/vouchers/{id}", voucher2.getVoucherId()).contentType(MediaType.APPLICATION_JSON))
 		         .andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.success").value(true)).andDo(print());
+				.andExpect(jsonPath("$.success").value(true))	
+				.andExpect(jsonPath("$.message").value("Successfully get voucherId " + voucher2.getVoucherId())).andDo(print());
 	}
 	
 	@Test
 	void testClaimVoucher() throws Exception {
+		
+		Mockito.when(userValidatorService.validateActiveUser(voucher1.getClaimedBy(), "CUSTOMER")).thenReturn(new HashMap<>());
 
 		Mockito.when(campaignService.findById(campaign.getCampaignId())).thenReturn(Optional.of(campaign));
 
@@ -102,9 +109,9 @@ public class VoucherControllerTest {
 				.thenReturn(DTOMapper.toVoucherDTO(voucher1));
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/vouchers/claim").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(voucher1))).andExpect(MockMvcResultMatchers.status().isBadRequest())
+				.content(objectMapper.writeValueAsString(voucher1))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.success").value(false))	
-				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
+				.andExpect(jsonPath("$.success").value(true))	
+				.andExpect(jsonPath("$.message").value("Voucher claimed successfully.")).andDo(print());
 	}
 }
