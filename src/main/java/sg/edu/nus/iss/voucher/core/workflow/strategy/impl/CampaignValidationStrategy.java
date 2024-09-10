@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.IAPIHelperValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
@@ -31,7 +33,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 	private StoreService storeService;
 
 	@Autowired
-	private JSONReader jsonReader;
+	private UserValidatorService userValidatorService;
 
 	@Override
 	public ValidationResult validateCreation(Campaign campaign, MultipartFile val) {
@@ -75,8 +77,8 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 		}
 
 		String userId = campaign.getCreatedBy();
-		validationResult = validateUser(userId);	
-		if(!validationResult.isValid()) {
+		validationResult = validateUser(userId);
+		if (!validationResult.isValid()) {
 			return validationResult;
 		}
 
@@ -98,8 +100,8 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 		}
 
 		String userId = campaign.getUpdatedBy();
-		validationResult = validateUser(userId);	
-		if(!validationResult.isValid()) {
+		validationResult = validateUser(userId);
+		if (!validationResult.isValid()) {
 			return validationResult;
 		}
 
@@ -134,31 +136,31 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			return validationResult;
 		}
 		Optional<Campaign> dbCampaign = campaignService.findById(campaignId);
-		if(dbCampaign !=null && !dbCampaign.isEmpty()) {
-		LocalDateTime startDate = dbCampaign.get().getStartDate();
-		LocalDateTime endDate = dbCampaign.get().getEndDate();
+		if (dbCampaign != null && !dbCampaign.isEmpty()) {
+			LocalDateTime startDate = dbCampaign.get().getStartDate();
+			LocalDateTime endDate = dbCampaign.get().getEndDate();
 
-		if (startDate.isBefore(LocalDateTime.now()) && endDate.isBefore(LocalDateTime.now())) {
-			validationResult.setMessage("StartDate " + startDate + " should not be less than current date ");
-			validationResult.setStatus(HttpStatus.BAD_REQUEST);
-			validationResult.setValid(false);
-			return validationResult;
-		}
-		
-		if (endDate.isBefore(LocalDateTime.now())) {
-			validationResult.setMessage("EndDate " + endDate + " should not be less than current date ");
-			validationResult.setStatus(HttpStatus.BAD_REQUEST);
-			validationResult.setValid(false);
-			return validationResult;
-		}
+			if (startDate.isBefore(LocalDateTime.now()) && endDate.isBefore(LocalDateTime.now())) {
+				validationResult.setMessage("StartDate " + startDate + " should not be less than current date ");
+				validationResult.setStatus(HttpStatus.BAD_REQUEST);
+				validationResult.setValid(false);
+				return validationResult;
+			}
 
-		if (dbCampaign.get().getCampaignStatus().equals(CampaignStatus.PROMOTED)) {
-			validationResult.setMessage("Campaign already promoted.");
-			validationResult.setStatus(HttpStatus.BAD_REQUEST);
-			validationResult.setValid(false);
-			return validationResult;
-		}
-		}else {
+			if (endDate.isBefore(LocalDateTime.now())) {
+				validationResult.setMessage("EndDate " + endDate + " should not be less than current date ");
+				validationResult.setStatus(HttpStatus.BAD_REQUEST);
+				validationResult.setValid(false);
+				return validationResult;
+			}
+
+			if (dbCampaign.get().getCampaignStatus().equals(CampaignStatus.PROMOTED)) {
+				validationResult.setMessage("Campaign already promoted.");
+				validationResult.setStatus(HttpStatus.BAD_REQUEST);
+				validationResult.setValid(false);
+				return validationResult;
+			}
+		} else {
 			validationResult.setMessage("Campaign Id is invalid.");
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
 			validationResult.setValid(false);
@@ -171,7 +173,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 
 	public ValidationResult validateUser(String userId) {
 		ValidationResult validationResult = new ValidationResult();
-		
+
 		if (userId == null || userId.isEmpty()) {
 			validationResult.setMessage("User Id could not be blank.");
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
@@ -179,7 +181,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			return validationResult;
 		}
 
-		HashMap<Boolean, String> userMap = jsonReader.validateActiveUser(userId);
+		HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userId, "MERCHANT");
 
 		for (Map.Entry<Boolean, String> entry : userMap.entrySet()) {
 
@@ -193,6 +195,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 		}
 
 		validationResult.setValid(true);
+
 		return validationResult;
 
 	}
