@@ -26,7 +26,6 @@ import sg.edu.nus.iss.voucher.core.workflow.service.IStoreService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 import sg.edu.nus.iss.voucher.core.workflow.utility.ImageUploadToS3;
-import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @Service
 public class StoreService implements IStoreService {
@@ -42,8 +41,6 @@ public class StoreService implements IStoreService {
 	@Autowired
 	private VoucherCoreSecurityConfig securityConfig;
 	
-	@Autowired
-	private JSONReader jsonReader;
 
 	@Override
 	public Map<Long, List<StoreDTO>> getAllActiveStoreList(Pageable pageable) {

@@ -1,9 +1,9 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
@@ -24,9 +24,9 @@ import org.json.simple.parser.ParseException;
 public class UserValidatorServiceTest {
 	
 	@Autowired
-	    private UserValidatorService userValidatorService;
+	private UserValidatorService userValidatorService;
 
-	    @Mock
+	    @MockBean
 	    private AuthAPICall apiCall;
 
 	  @Test
@@ -43,6 +43,7 @@ public class UserValidatorServiceTest {
 
 	        assertNotNull(result);
 	        assertEquals(1, result.size());
+	        assertEquals(success, true);
 	        
 	        mockResponse = "{\"totalRecord\":0,\"success\":false,\"data\": null}";
 

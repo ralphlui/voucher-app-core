@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,6 +37,7 @@ import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
 
 @SpringBootTest
@@ -51,11 +53,14 @@ public class StoreControllerTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 	
-	@Autowired
+	@Mock
 	AuthAPICall apiCall;
 
 	@MockBean
 	private StoreService storeService;
+	
+	@MockBean
+	private UserValidatorService userValidatorService;
 
 	private static List<StoreDTO> mockStores = new ArrayList<>();
 
@@ -112,11 +117,11 @@ public class StoreControllerTest {
 
 		MockMultipartFile store = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
 				objectMapper.writeValueAsBytes(store1));
-
+		
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/stores").file(store).file(uploadFile)
 				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isUnauthorized())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("UnAuthorized User Info Request.")).andDo(print());
 		
 		MockMultipartFile storeFile = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
 				objectMapper.writeValueAsBytes(store2));
@@ -144,16 +149,18 @@ public class StoreControllerTest {
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("storeName").ascending());
 		Map<Long, List<StoreDTO>> mockStoreMap = new HashMap<>();
 		mockStoreMap.put(0L, mockStores);
+		
+		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), "MERCHANT")).thenReturn(new HashMap<>());
 
 		Mockito.when(storeService.findActiveStoreListByUserId(store1.getCreatedBy(), false, pageable))
 				.thenReturn(mockStoreMap);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/users/{userId}", store1.getCreatedBy())
 				.param("page", "0").param("size", "10").contentType(MediaType.APPLICATION_JSON))
-				.andExpect(MockMvcResultMatchers.status().isBadRequest())
+				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.success").value(false))
-				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.message").value("Successfully get all active store by user.")).andDo(print());
 
 	}
 	
@@ -165,7 +172,7 @@ public class StoreControllerTest {
 
 		MockMultipartFile store = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
 				objectMapper.writeValueAsBytes(store1));
-
+		
 		Mockito.when(storeService.findByStoreId(store1.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store1));	 
 		 
 		Mockito.when(
@@ -175,7 +182,7 @@ public class StoreControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT,"/api/stores").file(store).file(uploadFile)
 				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isUnauthorized())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("UnAuthorized User Info Request.")).andDo(print());
 
 	}
 
