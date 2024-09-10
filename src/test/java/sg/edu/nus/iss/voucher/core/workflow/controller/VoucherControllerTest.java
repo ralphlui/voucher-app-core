@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -17,6 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -73,7 +77,7 @@ public class VoucherControllerTest {
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
 			null, null, null, null, false, null, "M1", "");
 	private static Campaign campaign = new Campaign("1", "new campaign 1", store, CampaignStatus.CREATED, null, 10, 0,
-			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), "test1@gmail.com", "", LocalDateTime.now(),
+			null, null, 10, LocalDateTime.now(), LocalDateTime.now(), "U1", "", LocalDateTime.now(),
 			LocalDateTime.now(), null,"Clothes", false);
 	private static Voucher voucher1 = new Voucher("1", campaign, VoucherStatus.CLAIMED, LocalDateTime.now(), null,
 			"U1");
@@ -113,5 +117,39 @@ public class VoucherControllerTest {
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))	
 				.andExpect(jsonPath("$.message").value("Voucher claimed successfully.")).andDo(print());
+	}
+	
+	@Test
+	void testGetAllVouchersClaimedBy() throws Exception {
+
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("claimTime").ascending());
+		Map<Long, List<VoucherDTO>> mockVoucherMap = new HashMap<>();
+		mockVoucherMap.put(0L, mockVouchers);
+
+		Mockito.when(voucherService.findByClaimedBy("U1", pageable))
+				.thenReturn(mockVoucherMap);
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/vouchers/users/{userId}","U1").param("page", "0").param("size", "10")
+				.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(true)).andExpect(jsonPath("$.data[0].voucherId").value(1))
+				.andDo(print());
+	}
+
+	@Test
+	void testGetAllVouchersByCampaignId() throws Exception {
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("claimTime").ascending());
+		Map<Long, List<VoucherDTO>> mockVoucherMap = new HashMap<>();
+		mockVoucherMap.put(0L, mockVouchers);
+
+		Mockito.when(voucherService.findAllClaimedVouchersByCampaignId(campaign.getCampaignId(), pageable))
+				.thenReturn(mockVoucherMap);
+		mockMvc.perform(
+				MockMvcRequestBuilders.get("/api/vouchers/campaigns/{campaignId}",campaign.getCampaignId()).param("page", "0").param("size", "10")
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(true)).andExpect(jsonPath("$.data[0].voucherId").value(1))
+				.andDo(print());
 	}
 }

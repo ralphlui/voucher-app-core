@@ -1,11 +1,16 @@
 package sg.edu.nus.iss.voucher.core.workflow.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
@@ -112,6 +117,54 @@ public class VoucherService implements IVoucherService {
 			logger.error("Voucher saving exception... {}", ex.toString());
 			throw ex;
 		}
+	}
+
+	@Override
+	public Map<Long, List<VoucherDTO>> findByClaimedBy(String userId, Pageable pageable) {
+		logger.info("Getting all claimed voucher for user {}...", userId);
+		Map<Long, List<VoucherDTO>> result = new HashMap<>();
+
+		try {
+
+			Page<Voucher> voucherPages = voucherRepository.findByClaimedBy(userId, pageable);
+			long totalRecord = voucherPages.getTotalElements();
+			List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
+			if (totalRecord > 0) {
+				for (Voucher voucher : voucherPages) {
+					VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(voucher);
+					List<Voucher> voucherList = voucherRepository
+							.findByCampaignCampaignId(voucherDTO.getCampaign().getCampaignId());
+					voucherDTO.getCampaign().setNumberOfClaimedVouchers(voucherList.size());
+					voucherDTOList.add(voucherDTO);
+
+				}
+			}
+			result.put(totalRecord, voucherDTOList);
+
+		} catch (Exception ex) {
+			logger.error(ex.toString());
+		}
+		return result;
+	}
+
+	@Override
+	public Map<Long, List<VoucherDTO>> findAllClaimedVouchersByCampaignId(String campaignId, Pageable pageable) {
+		logger.info("Getting all claimed voucher for campaign id {}...", campaignId);
+		Map<Long, List<VoucherDTO>> result = new HashMap<>();
+
+		Page<Voucher> voucherPages = voucherRepository.findByCampaignCampaignId(campaignId, pageable);
+		long totalRecord = voucherPages.getTotalElements();
+		List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
+		if (totalRecord > 0) {
+
+			for (Voucher voucher : voucherPages) {
+				VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(voucher);
+				voucherDTO.getCampaign().setNumberOfClaimedVouchers((int) totalRecord);
+				voucherDTOList.add(voucherDTO);
+			}
+		}
+		result.put(totalRecord, voucherDTOList);
+		return result;
 	}
 
 }

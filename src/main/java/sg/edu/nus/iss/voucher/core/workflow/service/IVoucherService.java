@@ -1,6 +1,9 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
 
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.data.domain.Pageable;
 
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
@@ -17,4 +20,7 @@ public interface IVoucherService {
 	 
 	 VoucherDTO claimVoucher(Voucher voucher) throws Exception;
 	 
+	 Map<Long, List<VoucherDTO>> findByClaimedBy(String claimedBy,Pageable pageable);
+
+	 Map<Long, List<VoucherDTO>> findAllClaimedVouchersByCampaignId(String campaignId,Pageable pageable);
 }
