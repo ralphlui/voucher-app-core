@@ -307,12 +307,13 @@ public class CampaignController {
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
 			}
 			
-			if(userId == null || userId.isEmpty()) {
-				logger.error("Bad Request:UserId could not be blank for Campaign promote.");
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body(APIResponse.error("Bad Request:UserId could not be blank for Campaign promote."));
+			validationResult= campaignValidationStrategy.validateUser(userId);
+			if (!validationResult.isValid()) {
+				String message = validationResult.getMessage();
+				logger.error(message);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
 			}
-
+			
 			CampaignDTO campaignDTO = campaignService.promote(campaignId,userId);
 			if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
 				return ResponseEntity.status(HttpStatus.OK)
