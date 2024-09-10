@@ -16,7 +16,7 @@ import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 @Service
 public class UserValidatorService {
 	
-	private static final Logger logger = LoggerFactory.getLogger(JSONReader.class);
+	private static final Logger logger = LoggerFactory.getLogger(UserValidatorService.class);
 	
 	@Autowired
 	AuthAPICall apiCall;
