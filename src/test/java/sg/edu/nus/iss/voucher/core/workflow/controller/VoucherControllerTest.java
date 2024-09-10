@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,13 +24,17 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.VoucherService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
 
@@ -45,6 +51,16 @@ public class VoucherControllerTest {
 
 	@MockBean
 	private VoucherService voucherService;
+	
+	@MockBean
+	private CampaignService campaignService;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
+	
+	@Autowired
+	AuthAPICall apiCall;
+
 
 
 	private static List<VoucherDTO> mockVouchers = new ArrayList<>();
@@ -75,5 +91,20 @@ public class VoucherControllerTest {
 		         .andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
+	}
+	
+	@Test
+	void testClaimVoucher() throws Exception {
+
+		Mockito.when(campaignService.findById(campaign.getCampaignId())).thenReturn(Optional.of(campaign));
+
+		Mockito.when(voucherService.claimVoucher(Mockito.any(Voucher.class)))
+				.thenReturn(DTOMapper.toVoucherDTO(voucher1));
+
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/vouchers/claim").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(voucher1))).andExpect(MockMvcResultMatchers.status().isBadRequest())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(false))	
+				.andExpect(jsonPath("$.message").value("User account not found.")).andDo(print());
 	}
 }
