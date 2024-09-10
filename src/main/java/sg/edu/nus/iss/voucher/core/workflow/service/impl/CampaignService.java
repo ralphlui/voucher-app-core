@@ -37,6 +37,9 @@ public class CampaignService implements ICampaignService {
 
 	@Autowired
 	private StoreRepository storeRepository;
+	
+	@Autowired
+	private VoucherRepository voucherRepository;
 
 	@Autowired
 	private SNSPublishingService messagePublishService;
@@ -77,7 +80,7 @@ public class CampaignService implements ICampaignService {
 
 		if (totalRecord > 0) {
 			for (Campaign campaign : campaignPages) {
-				//campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaign.getCampaignId()));
+				campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaign.getCampaignId()));
 				campaignDTOList.add(DTOMapper.toCampaignDTO(campaign));
 			}
 		} else {
@@ -102,7 +105,7 @@ public class CampaignService implements ICampaignService {
 		List<CampaignDTO> campaignDTOList = new ArrayList<>();
 		if (totalRecord > 0) {
 			for (Campaign campaign : campaignPages) {
-				//campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaign.getCampaignId()));
+				campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaign.getCampaignId()));
 				campaignDTOList.add(DTOMapper.toCampaignDTO(campaign));
 			}
 		} else {
@@ -122,7 +125,7 @@ public class CampaignService implements ICampaignService {
 		List<CampaignDTO> campaignDTOList = new ArrayList<>();
 		if (totalRecord > 0) {
 			for (Campaign campaign : campaignPages) {
-				//campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaign.getCampaignId()));
+				campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaign.getCampaignId()));
 				campaignDTOList.add(DTOMapper.toCampaignDTO(campaign));
 			}
 		}
@@ -136,7 +139,7 @@ public class CampaignService implements ICampaignService {
 		Campaign campaign = campaignRepository.findById(campaignId).orElse(null);
 		if (campaign != null) {
 			logger.info("Campaign found...");
-			//campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaignId));
+			campaign.setVoucher(voucherRepository.findByCampaignCampaignId(campaignId));
 			return DTOMapper.toCampaignDTO(campaign);
 		}
 		logger.warn("Didn't find any campaign for campaignId {}...", campaignId);
