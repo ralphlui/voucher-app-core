@@ -40,16 +40,16 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
 @ActiveProfiles("test")
 public class CampaignServiceTest {
 
-	@Mock
+	@MockBean
 	private CampaignRepository campaignRepository;
 
-	@Mock
+	@MockBean
 	private StoreRepository storeRepository;	
 
-	@InjectMocks
+	@Autowired
 	private CampaignService campaignService;
 	
-	@Mock
+	@MockBean
 	private SNSPublishingService messagePublishService;
 
 
@@ -169,7 +169,7 @@ public class CampaignServiceTest {
 		CampaignDTO campaignDTO = campaignService.update(campaign1);
 		assertEquals(campaignDTO.getDescription(), "test update");
 	}
-
+	
 	@Test
 	void findSingleCampaign() {
 		Mockito.when(campaignRepository.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
