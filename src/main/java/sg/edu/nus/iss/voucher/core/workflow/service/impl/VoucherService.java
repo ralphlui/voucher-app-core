@@ -167,4 +167,32 @@ public class VoucherService implements IVoucherService {
 		return result;
 	}
 
+	@Override
+	public VoucherDTO consumeVoucher(Voucher voucher) {
+		try {
+			// Add validation here to make sure the same userId is passed
+
+			Voucher dbVoucher = voucherRepository.findById(voucher.getVoucherId()).orElseThrow();
+			if (dbVoucher == null) {
+				logger.info("Voucher Id {} is not found.", voucher.getVoucherId());
+				return null;
+			}
+			dbVoucher.setConsumedTime(LocalDateTime.now());
+			dbVoucher.setVoucherStatus(VoucherStatus.CONSUMED);
+			logger.info("Consuming voucher...");
+			Voucher savedVoucher = voucherRepository.save(dbVoucher);
+			logger.info("Consumed successfully...");
+
+			VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(savedVoucher);
+			List<Voucher> voucherList = voucherRepository
+					.findByCampaignCampaignId(voucherDTO.getCampaign().getCampaignId());
+			voucherDTO.getCampaign().setNumberOfClaimedVouchers(voucherList.size());
+
+			return voucherDTO;
+		} catch (Exception ex) {
+			logger.error("Voucher consuming exception... {}", ex.toString());
+			return null;
+		}
+	}
+
 }

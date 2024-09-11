@@ -23,4 +23,6 @@ public interface IVoucherService {
 	 Map<Long, List<VoucherDTO>> findByClaimedBy(String claimedBy,Pageable pageable);
 
 	 Map<Long, List<VoucherDTO>> findAllClaimedVouchersByCampaignId(String campaignId,Pageable pageable);
+	 
+	 VoucherDTO consumeVoucher(Voucher voucher);
 }
