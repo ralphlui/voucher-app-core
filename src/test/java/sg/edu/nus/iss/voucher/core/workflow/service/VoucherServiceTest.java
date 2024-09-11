@@ -1,5 +1,6 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
@@ -29,6 +30,7 @@ import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 import sg.edu.nus.iss.voucher.core.workflow.repository.CampaignRepository;
+import sg.edu.nus.iss.voucher.core.workflow.repository.StoreRepository;
 import sg.edu.nus.iss.voucher.core.workflow.repository.VoucherRepository;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.VoucherService;
 
@@ -46,6 +48,9 @@ public class VoucherServiceTest {
 	
 	@MockBean
 	private CampaignRepository campaignRepository;
+	
+	@MockBean
+	private StoreRepository storeRepository;
 
 
 	private static List<Voucher> mockVouchers = new ArrayList<>();
@@ -132,6 +137,18 @@ public class VoucherServiceTest {
 		assertEquals(mockVouchers.size(), voucherDTOList.size());
 		assertEquals(mockVouchers.get(0).getVoucherId(), voucherDTOList.get(0).getVoucherId());
 		assertEquals(mockVouchers.get(1).getVoucherId(), voucherDTOList.get(1).getVoucherId());
+	}
+	
+	
+	@Test
+	void consumeVoucher() throws Exception {
+		Mockito.when(voucherRepository.findById(voucher1.getVoucherId())).thenReturn(Optional.of(voucher1));
+		Mockito.when(voucherRepository.save(Mockito.any(Voucher.class))).thenReturn(voucher1);
+		Mockito.when(storeRepository.findById(store.getStoreId())).thenReturn(Optional.of(store));
+		voucher1.setConsumedTime(LocalDateTime.now());
+		;
+		VoucherDTO voucherDTO = voucherService.consumeVoucher(voucher1.getVoucherId());
+		assertNotNull(voucherDTO.getConsumedTime());
 	}
 
 }

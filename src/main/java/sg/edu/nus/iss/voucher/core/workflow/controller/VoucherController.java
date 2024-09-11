@@ -12,9 +12,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +26,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
+import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 import sg.edu.nus.iss.voucher.core.workflow.exception.CampaignNotFoundException;
+import sg.edu.nus.iss.voucher.core.workflow.exception.VoucherNotFoundException;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 
@@ -227,7 +231,43 @@ public class VoucherController {
 		}
 
 	}
-	
+
+	@PatchMapping(value = "{voucherID}/consume", produces = "application/json")
+	public ResponseEntity<APIResponse<VoucherDTO>> updateVoucher(@PathVariable("voucherID") String voucherID) {
+		String voucherId = GeneralUtility.makeNotNull(voucherID).trim();
+
+		logger.info("Calling Voucher consume API...");
+
+		try {
+
+			VoucherDTO voucherDTO = voucherService.findByVoucherId(voucherId);
+
+			if (voucherDTO != null && !voucherDTO.getVoucherStatus().equals(VoucherStatus.CLAIMED)) {
+				logger.error("Voucher already consumed or not in a claimable state. Id: {}", voucherId);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body(APIResponse.error("Voucher already consumed."));
+			}
+
+			VoucherDTO updatedVoucherDTO = voucherService.consumeVoucher(voucherId);
+
+			if (updatedVoucherDTO.getVoucherStatus().equals(VoucherStatus.CONSUMED)) {
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(APIResponse.success(updatedVoucherDTO, "Voucher consumed successfully."));
+			} else {
+				logger.error("Voucher consumption failed. Id: {}", voucherId);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.body(APIResponse.error("Voucher consumption failed."));
+			}
+
+		} catch (Exception ex) {
+			logger.error("Exception during Voucher consume API call. Id: {}, Error: {}", voucherId, ex.getMessage());
+			HttpStatusCode htpStatuscode = ex instanceof VoucherNotFoundException ? HttpStatus.NOT_FOUND
+					: HttpStatus.INTERNAL_SERVER_ERROR;
+			return ResponseEntity.status(htpStatuscode)
+					.body(APIResponse.error(ex.getMessage()));
+		}
+	}
+
 	private String validateUser(String userId) {
 		HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userId, "CUSTOMER");
 		logger.info("user Id key map "+ userMap.keySet());
