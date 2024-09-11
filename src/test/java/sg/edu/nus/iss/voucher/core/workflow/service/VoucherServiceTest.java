@@ -122,7 +122,6 @@ public class VoucherServiceTest {
 
 	@Test
 	void findAllClaimedVouchersByCampaignId() {
-		long totalRecord = 0;
 		List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Voucher> mockVoucherPage = new PageImpl<>(mockVouchers, pageable, mockVouchers.size());
@@ -130,7 +129,6 @@ public class VoucherServiceTest {
 		Mockito.when(voucherRepository.findByCampaignCampaignId("1", pageable)).thenReturn(mockVoucherPage);
 		Map<Long, List<VoucherDTO>> voucherPage = voucherService.findAllClaimedVouchersByCampaignId("1", pageable);
 		for (Map.Entry<Long, List<VoucherDTO>> entry : voucherPage.entrySet()) {
-			totalRecord = entry.getKey();
 			voucherDTOList = entry.getValue();
 
 		}
