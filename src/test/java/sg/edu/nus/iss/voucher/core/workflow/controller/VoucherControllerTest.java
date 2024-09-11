@@ -152,4 +152,20 @@ public class VoucherControllerTest {
 				.andExpect(jsonPath("$.success").value(true)).andExpect(jsonPath("$.data[0].voucherId").value(1))
 				.andDo(print());
 	}
+	
+
+	@Test
+	void testConsumeVoucher() throws Exception {
+
+		Mockito.when(voucherService.findByVoucherId(voucher1.getVoucherId()))
+				.thenReturn(DTOMapper.toVoucherDTO(voucher1));
+		voucher1.setVoucherStatus(VoucherStatus.CONSUMED);
+		Mockito.when(voucherService.consumeVoucher(voucher1.getVoucherId())).thenReturn(DTOMapper.toVoucherDTO(voucher1));
+
+		mockMvc.perform(MockMvcRequestBuilders.patch("/api/vouchers/{id}/consume", voucher1.getVoucherId()).contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(voucher1))).andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(true))	
+				.andExpect(jsonPath("$.message").value("Voucher consumed successfully.")).andDo(print());
+	}
 }

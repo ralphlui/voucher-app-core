@@ -18,6 +18,7 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
+import sg.edu.nus.iss.voucher.core.workflow.exception.VoucherNotFoundException;
 import sg.edu.nus.iss.voucher.core.workflow.repository.CampaignRepository;
 import sg.edu.nus.iss.voucher.core.workflow.repository.VoucherRepository;
 import sg.edu.nus.iss.voucher.core.workflow.service.IVoucherService;
@@ -46,7 +47,7 @@ public class VoucherService implements IVoucherService {
 			
 			if (voucher == null) {
 				logger.error("Voucher not found...");
-				throw new Exception("Voucher not found by voucherId: " + voucherId);
+				throw new VoucherNotFoundException("Voucher not found by voucherId: " + voucherId);
 			}
 			
 			logger.info("Voucher found...");
@@ -165,6 +166,34 @@ public class VoucherService implements IVoucherService {
 		}
 		result.put(totalRecord, voucherDTOList);
 		return result;
+	}
+
+	@Override
+	public VoucherDTO consumeVoucher(String voucherId)  {
+		try {
+			// Add validation here to make sure the same userId is passed
+
+			Voucher dbVoucher = voucherRepository.findById(voucherId).orElseThrow();
+			if (dbVoucher == null) {
+				logger.info("Voucher Id {} is not found.", voucherId);
+				throw new VoucherNotFoundException("Voucher not found. Id: " + voucherId);
+			}
+			dbVoucher.setConsumedTime(LocalDateTime.now());
+			dbVoucher.setVoucherStatus(VoucherStatus.CONSUMED);
+			logger.info("Consuming voucher...");
+			Voucher savedVoucher = voucherRepository.save(dbVoucher);
+			logger.info("Consumed successfully...");
+
+			VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(savedVoucher);
+			List<Voucher> voucherList = voucherRepository
+					.findByCampaignCampaignId(voucherDTO.getCampaign().getCampaignId());
+			voucherDTO.getCampaign().setNumberOfClaimedVouchers(voucherList.size());
+
+			return voucherDTO;
+		} catch (Exception ex) {
+			logger.error("Voucher consuming exception... {}", ex.toString());
+			throw ex;
+		}
 	}
 
 }
