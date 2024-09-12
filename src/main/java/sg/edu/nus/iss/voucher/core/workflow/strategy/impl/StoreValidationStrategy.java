@@ -88,7 +88,6 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 		validationResult.setMessage(message);
 		if (!success) {
 			validationResult.setStatus(HttpStatus.UNAUTHORIZED);
-			validationResult.setMessage("UnAuthorized User Info Request.");
 		}
 		return validationResult;
 
