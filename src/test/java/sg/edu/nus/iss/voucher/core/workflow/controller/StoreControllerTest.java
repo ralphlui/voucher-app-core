@@ -89,7 +89,7 @@ public class StoreControllerTest {
 
 		Mockito.when(storeService.getAllActiveStoreList(pageable)).thenReturn(mockStoreMap);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores").param("page", "0").param("size", "10")
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores").param("page", "0").param("size", "10")
 				.contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
@@ -100,7 +100,7 @@ public class StoreControllerTest {
 		emptyMockStoreMap.put(0L, emptyMockStores);
 		Mockito.when(storeService.getAllActiveStoreList(pageable)).thenReturn(emptyMockStoreMap);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores").param("page", "0").param("size", "10")
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores").param("page", "0").param("size", "10")
 				.contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNotFound())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
@@ -130,7 +130,7 @@ public class StoreControllerTest {
 		Mockito.when(storeService.findByStoreName(store1.getStoreName())).thenReturn(storeDTO);
 	 
 		
-		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/stores").file(store).file(uploadFile)
+		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/core/stores").file(store).file(uploadFile)
 				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
@@ -139,7 +139,7 @@ public class StoreControllerTest {
 		MockMultipartFile storeFile = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
 				objectMapper.writeValueAsBytes(store2));
 
-		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/stores").file(storeFile).file(uploadFile)
+		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/core/stores").file(storeFile).file(uploadFile)
 				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isBadRequest())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(false))
@@ -150,7 +150,7 @@ public class StoreControllerTest {
 	@Test
 	void testGetStoreById() throws Exception {
 		Mockito.when(storeService.findByStoreId(store1.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store1));
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/{id}", store1.getStoreId()).contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores/{id}", store1.getStoreId()).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(store1))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
@@ -169,7 +169,7 @@ public class StoreControllerTest {
 		Mockito.when(storeService.findActiveStoreListByUserId(store1.getCreatedBy(), false, pageable))
 				.thenReturn(mockStoreMap);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/stores/users/{userId}", store1.getCreatedBy())
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores/users/{userId}", store1.getCreatedBy())
 				.param("page", "0").param("size", "10").contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -201,7 +201,7 @@ public class StoreControllerTest {
 				storeService.updateStore(Mockito.any(Store.class), (MultipartFile) Mockito.any(MultipartFile.class)))
 				.thenReturn(DTOMapper.toStoreDTO(store1));
 
-		mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT,"/api/stores").file(store).file(uploadFile)
+		mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT,"/api/core/stores").file(store).file(uploadFile)
 				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))

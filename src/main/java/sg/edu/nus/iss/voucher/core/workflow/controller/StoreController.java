@@ -35,7 +35,7 @@ import org.springframework.data.domain.*;
 
 @RestController
 @Validated
-@RequestMapping("/api/stores")
+@RequestMapping("/api/core/stores")
 public class StoreController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(StoreController.class);
