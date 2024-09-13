@@ -32,7 +32,7 @@ import sg.edu.nus.iss.voucher.core.workflow.utility.*;
 
 @RestController
 @Validated
-@RequestMapping("/api/campaigns")
+@RequestMapping("/api/core/campaigns")
 public class CampaignController {
 
 	private static final Logger logger = LoggerFactory.getLogger(CampaignController.class);
