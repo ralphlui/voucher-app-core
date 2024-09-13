@@ -34,7 +34,7 @@ import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 
 @RestController
 @Validated
-@RequestMapping("/api/vouchers")
+@RequestMapping("/api/core/vouchers")
 public class VoucherController {
 
 	private static final Logger logger = LoggerFactory.getLogger(VoucherController.class);
