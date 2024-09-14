@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
+import sg.edu.nus.iss.voucher.core.workflow.enums.UserRoleType;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 import sg.edu.nus.iss.voucher.core.workflow.exception.CampaignNotFoundException;
 import sg.edu.nus.iss.voucher.core.workflow.exception.VoucherNotFoundException;
@@ -269,7 +270,7 @@ public class VoucherController {
 	}
 
 	private String validateUser(String userId) {
-		HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userId, "CUSTOMER");
+		HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userId, UserRoleType.CUSTOMER.toString());
 		logger.info("user Id key map "+ userMap.keySet());
 		
 		for (Map.Entry<Boolean, String> entry : userMap.entrySet()) {

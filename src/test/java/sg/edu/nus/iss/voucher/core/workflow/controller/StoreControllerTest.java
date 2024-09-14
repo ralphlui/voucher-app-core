@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
+import sg.edu.nus.iss.voucher.core.workflow.enums.UserRoleType;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.DTOMapper;
@@ -124,7 +125,7 @@ public class StoreControllerTest {
 		map.put(true, "User Account is active.");
 
 		
-		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), "MERCHANT")).thenReturn(map);
+		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), UserRoleType.MERCHANT.toString())).thenReturn(map);
 		
 		
 		Mockito.when(storeService.findByStoreName(store1.getStoreName())).thenReturn(storeDTO);
@@ -164,7 +165,7 @@ public class StoreControllerTest {
 		Map<Long, List<StoreDTO>> mockStoreMap = new HashMap<>();
 		mockStoreMap.put(0L, mockStores);
 		
-		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), "MERCHANT")).thenReturn(new HashMap<>());
+		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), UserRoleType.MERCHANT.toString())).thenReturn(new HashMap<>());
 
 		Mockito.when(storeService.findActiveStoreListByUserId(store1.getCreatedBy(), false, pageable))
 				.thenReturn(mockStoreMap);
@@ -192,7 +193,7 @@ public class StoreControllerTest {
 		map.put(true, "User Account is active.");
 
 		
-		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), "MERCHANT")).thenReturn(map);
+		Mockito.when(userValidatorService.validateActiveUser(store1.getCreatedBy(), UserRoleType.MERCHANT.toString())).thenReturn(map);
 		
 		
 		Mockito.when(storeService.findByStoreId(store1.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store1));
