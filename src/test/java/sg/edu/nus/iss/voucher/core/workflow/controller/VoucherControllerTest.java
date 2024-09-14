@@ -37,6 +37,7 @@ import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
+import sg.edu.nus.iss.voucher.core.workflow.enums.UserRoleType;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
@@ -105,7 +106,7 @@ public class VoucherControllerTest {
 	@Test
 	void testClaimVoucher() throws Exception {
 		
-		Mockito.when(userValidatorService.validateActiveUser(voucher1.getClaimedBy(), "CUSTOMER")).thenReturn(new HashMap<>());
+		Mockito.when(userValidatorService.validateActiveUser(voucher1.getClaimedBy(),  UserRoleType.CUSTOMER.toString())).thenReturn(new HashMap<>());
 
 		Mockito.when(campaignService.findById(campaign.getCampaignId())).thenReturn(Optional.of(campaign));
 

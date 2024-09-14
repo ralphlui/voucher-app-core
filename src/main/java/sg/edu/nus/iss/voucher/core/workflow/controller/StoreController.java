@@ -25,6 +25,7 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.APIResponse;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.dto.ValidationResult;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
+import sg.edu.nus.iss.voucher.core.workflow.enums.UserRoleType;
 import sg.edu.nus.iss.voucher.core.workflow.exception.StoreNotFoundException;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
@@ -166,7 +167,7 @@ public class StoreController {
 			}
 
 			logger.info("UserId: " + userid);
-			HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userid, "MERCHANT");
+			HashMap<Boolean, String> userMap = userValidatorService.validateActiveUser(userid, UserRoleType.MERCHANT.toString());
 			logger.info("user Id key map "+ userMap.keySet());
 			
 			for (Map.Entry<Boolean, String> entry : userMap.entrySet()) {
