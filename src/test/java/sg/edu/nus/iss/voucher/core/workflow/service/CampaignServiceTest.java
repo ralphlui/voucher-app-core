@@ -172,6 +172,7 @@ public class CampaignServiceTest {
 	
 	@Test
 	void findSingleCampaign() {
+		Mockito.when(campaignRepository.save(Mockito.any(Campaign.class))).thenReturn(campaign1);
 		Mockito.when(campaignRepository.findById(campaign1.getCampaignId())).thenReturn(Optional.of(campaign1));
 		CampaignDTO campaignDTO = campaignService.findByCampaignId(campaign1.getCampaignId());
 		assertEquals(campaignDTO.getCampaignId(), campaign1.getCampaignId());
