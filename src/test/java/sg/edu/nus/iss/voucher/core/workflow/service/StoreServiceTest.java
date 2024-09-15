@@ -8,12 +8,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
@@ -26,6 +29,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
+import sg.edu.nus.iss.voucher.core.workflow.controller.StoreController;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.repository.StoreRepository;
@@ -51,6 +55,10 @@ public class StoreServiceTest {
 			"MUJI offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
 			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
 			null, null, null, null, false, null, "US1", "");
+	private static Store store2 = new Store("2", "Ikea",
+			"Ikea offers a wide variety of good quality items from stationery to household items and apparel.", "Test",
+			"#04-36/40 Paragon Shopping Centre", "290 Orchard Rd", "", "238859", "Singapore", "Singapore", "Singapore",
+			null, null, null, null, false, null, "US1", "");
 
 	private static List<Store> mockStores = new ArrayList<>();
 
@@ -58,6 +66,7 @@ public class StoreServiceTest {
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
 		mockStores.add(store);
+		mockStores.add(store2);
 	}
 	
 
@@ -70,16 +79,18 @@ public class StoreServiceTest {
 
 		Mockito.when(storeRepository.findByIsDeletedFalse(pageable)).thenReturn(mockStoresPage);
 
-		Map<Long, List<StoreDTO>> storePages = storeService.getAllActiveStoreList(pageable);
+		Map<Long, List<StoreDTO>> storePages = storeService.getAllActiveStoreList("", pageable);
 		for (Map.Entry<Long, List<StoreDTO>> entry : storePages.entrySet()) {
 			totalRecord = entry.getKey();
 			storeDTOList = entry.getValue();
 
 		}
 
-		assertThat(totalRecord).isGreaterThan(0);
+		assertEquals(totalRecord, 2);
 		assertThat(storeDTOList.get(0).getStoreName()).isEqualTo("MUJI");
+		assertThat(storeDTOList.get(1).getStoreName()).isEqualTo("Ikea");
 	}
+
 	
 	@Test
 	void testCreateStore() throws Exception {
@@ -154,19 +165,20 @@ public class StoreServiceTest {
 		StoreDTO storeDTO = storeService.updateStore(store, imageFile);
 		assertThat(storeDTO).isNotNull();
 		assertEquals(storeDTO.getDescription(), store.getDescription());
-	}
+	}	
 	
+
 	@Test
 	void testSearchStoresByKeyword() {
 		long totalRecord = 0;
 		List<StoreDTO> storeDTOList = new ArrayList<StoreDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Store> mockStoresPage = new PageImpl<>(mockStores, pageable, mockStores.size());
-		String searchKeyword = "Mu";
+		String searchKeyword = "MU";
 
 		Mockito.when(storeRepository.searchStoresByKeyword(searchKeyword, false ,pageable)).thenReturn(mockStoresPage);
 
-		Map<Long, List<StoreDTO>> storePages = storeService.searchStoresByKeyword(searchKeyword, false ,pageable);
+		Map<Long, List<StoreDTO>> storePages = storeService.getAllActiveStoreList(searchKeyword ,pageable);
 		for (Map.Entry<Long, List<StoreDTO>> entry : storePages.entrySet()) {
 			totalRecord = entry.getKey();
 			storeDTOList = entry.getValue();
@@ -176,6 +188,5 @@ public class StoreServiceTest {
 		assertThat(totalRecord).isGreaterThan(0);
 		assertThat(storeDTOList.get(0).getStoreName()).isEqualTo("MUJI");
 	}
-	
 
 }

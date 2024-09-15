@@ -43,9 +43,10 @@ public class StoreService implements IStoreService {
 	
 
 	@Override
-	public Map<Long, List<StoreDTO>> getAllActiveStoreList(Pageable pageable) {
+	public Map<Long, List<StoreDTO>> getAllActiveStoreList(String storeSearchKeyword, Pageable pageable) {
 		try {
-			Page<Store> storePages = storeRepository.findByIsDeletedFalse(pageable);
+			
+			Page<Store> storePages = storeSearchKeyword.isEmpty() ?  storeRepository.findByIsDeletedFalse(pageable) : storeRepository.searchStoresByKeyword(storeSearchKeyword, false, pageable);
 			long totalRecord = storePages.getTotalElements();
 			List<StoreDTO> storeDTOList = new ArrayList<>();
 			if (totalRecord > 0) {
@@ -55,13 +56,13 @@ public class StoreService implements IStoreService {
 					storeDTOList.add(storeDTO);
 				}
 			}
-
+			logger.info("Total record in getAllActiveStoreList1 " + totalRecord);
 			Map<Long, List<StoreDTO>> result = new HashMap<>();
 			result.put(totalRecord, storeDTOList);
 			return result;
 
 		} catch (Exception ex) {
-			logger.error("findByIsDeletedFalse exception... {}", ex.toString());
+			logger.error("getAllActiveStoreList exception... {}", ex.toString());
 			throw ex;
 		}
 
@@ -209,32 +210,6 @@ public class StoreService implements IStoreService {
 			throw ex;
 		}
 
-	}
-
-	@Override
-	public Map<Long, List<StoreDTO>> searchStoresByKeyword(String storeSearchKeyword, boolean isDeleted,
-			Pageable pageable) {
-		try {
-			Page<Store> storePages = storeRepository.searchStoresByKeyword(storeSearchKeyword, isDeleted, pageable);
-			long totalRecord = storePages.getTotalElements();
-			Map<Long, List<StoreDTO>> result = new HashMap<>();
-			List<StoreDTO> storeDTOList = new ArrayList<>();
-
-			if (totalRecord > 0) {
-				for (Store store : storePages.getContent()) {
-					StoreDTO storeDTO = DTOMapper.mapStoreToResult(store);
-					storeDTOList.add(storeDTO);
-				}
-			}
-			logger.info("Total record in searchStoresByKeyword " + totalRecord);
-			result.put(totalRecord, storeDTOList);
-			return result;
-
-		} catch (Exception ex) {
-			logger.error("Error occurred while user creating, " + ex.toString());
-			ex.printStackTrace();
-			throw ex;
-		}
 	}
 
 }
