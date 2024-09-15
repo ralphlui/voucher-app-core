@@ -211,4 +211,30 @@ public class StoreService implements IStoreService {
 
 	}
 
+	@Override
+	public Map<Long, List<StoreDTO>> searchStoresByKeyword(String storeSearchKeyword, boolean isDeleted,
+			Pageable pageable) {
+		try {
+			Page<Store> storePages = storeRepository.searchStoresByKeyword(storeSearchKeyword, isDeleted, pageable);
+			long totalRecord = storePages.getTotalElements();
+			Map<Long, List<StoreDTO>> result = new HashMap<>();
+			List<StoreDTO> storeDTOList = new ArrayList<>();
+
+			if (totalRecord > 0) {
+				for (Store store : storePages.getContent()) {
+					StoreDTO storeDTO = DTOMapper.mapStoreToResult(store);
+					storeDTOList.add(storeDTO);
+				}
+			}
+			logger.info("Total record in findActiveStoreListByUserId " + totalRecord);
+			result.put(totalRecord, storeDTOList);
+			return result;
+
+		} catch (Exception ex) {
+			logger.error("Error occurred while user creating, " + ex.toString());
+			ex.printStackTrace();
+			throw ex;
+		}
+	}
+
 }

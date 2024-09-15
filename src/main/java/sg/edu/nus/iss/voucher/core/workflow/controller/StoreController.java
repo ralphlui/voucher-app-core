@@ -234,4 +234,48 @@ public class StoreController {
 		}
 
 	}
+	
+	
+	@GetMapping(value = "/search/{keyword}", produces = "application/json")
+	public ResponseEntity<APIResponse<List<StoreDTO>>> searchStoresByKeyword(@PathVariable("keyword") String keyword,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "500") int size) {
+
+		logger.info("Call store getAllByUser API with page={}, size={}", page, size);
+		String message = "";
+
+		try {
+
+			String searchKeyword = GeneralUtility.makeNotNull(keyword).trim();
+			if (searchKeyword.isEmpty()) {
+				message = "Search Keyword cannot be blank.";
+				logger.error(message);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error(message));
+			}
+
+			logger.info("Search Keyword: " + searchKeyword);
+			Pageable pageable = PageRequest.of(page, size, Sort.by("storeName").ascending());
+			Map<Long, List<StoreDTO>> resultMap = storeService.searchStoresByKeyword(searchKeyword, false, pageable);
+			logger.info("size " + resultMap.size());
+
+			Map.Entry<Long, List<StoreDTO>> firstEntry = resultMap.entrySet().iterator().next();
+			long totalRecord = firstEntry.getKey();
+			List<StoreDTO> storeDTOList = firstEntry.getValue();
+
+			if (storeDTOList.size() > 0) {
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(APIResponse.success(storeDTOList, "Successfully retrieved searched stores", totalRecord));
+
+			} else {
+				message = "No stores found matching the keyword "+ searchKeyword;
+				logger.error(message);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.noList(storeDTOList, message));
+			}
+
+		} catch (Exception e) {
+			message = e.getMessage();
+			logger.error(message);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+
+		}
+	}
 }

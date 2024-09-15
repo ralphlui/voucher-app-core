@@ -23,6 +23,9 @@ public interface StoreRepository extends JpaRepository<Store, String> {
 	
 	@Query("SELECT s FROM Store s WHERE s.createdBy = :createdBy AND s.isDeleted = :isDeleted")
 	Page<Store> findActiveStoreListByUserId(@Param("createdBy") String createdBy, @Param("isDeleted") boolean isDeleted, Pageable pageable);
+	
+	@Query("SELECT s FROM Store s WHERE s.storeName LIKE %?1% AND s.isDeleted = ?2")
+	Page<Store> searchStoresByKeyword(String storeName, boolean isDeleted, Pageable pageable);
 
 	
 }

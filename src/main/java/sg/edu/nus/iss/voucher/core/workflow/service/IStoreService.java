@@ -24,4 +24,6 @@ public interface IStoreService {
 	Map<Long, List<StoreDTO>> findActiveStoreListByUserId(String createdBy, boolean isDeleted,Pageable pageable);
 	
 	StoreDTO updateStore(Store store, MultipartFile uploadFile) throws Exception;
+	
+	Map<Long, List<StoreDTO>> searchStoresByKeyword(String storeSearchKeyword, boolean isDeleted,Pageable pageable);
 }
