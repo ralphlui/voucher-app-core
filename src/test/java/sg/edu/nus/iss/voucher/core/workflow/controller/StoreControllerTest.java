@@ -209,5 +209,26 @@ public class StoreControllerTest {
 				.andExpect(jsonPath("$.message").value("Store updated successfully.")).andDo(print());
 
 	}
+	
+	
+	
+	@Test
+	void testSearchStoreByKeyword() throws Exception {
+
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("storeName").ascending());
+		Map<Long, List<StoreDTO>> mockStoreMap = new HashMap<>();
+		mockStoreMap.put(0L, mockStores);
+		String searchKeyword = "Mu";
+
+		Mockito.when(storeService.searchStoresByKeyword(searchKeyword, false, pageable)).thenReturn(mockStoreMap);
+
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores/search/{keyword}", searchKeyword)
+				.param("page", "0").param("size", "10").contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(jsonPath("$.success").value(true))
+				.andExpect(jsonPath("$.message").value("Successfully retrieved searched stores")).andDo(print());
+
+	}
 
 }

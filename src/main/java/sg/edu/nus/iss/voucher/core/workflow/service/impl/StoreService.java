@@ -226,7 +226,7 @@ public class StoreService implements IStoreService {
 					storeDTOList.add(storeDTO);
 				}
 			}
-			logger.info("Total record in findActiveStoreListByUserId " + totalRecord);
+			logger.info("Total record in searchStoresByKeyword " + totalRecord);
 			result.put(totalRecord, storeDTOList);
 			return result;
 

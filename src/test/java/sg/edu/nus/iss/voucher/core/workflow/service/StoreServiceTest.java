@@ -14,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
@@ -156,5 +155,27 @@ public class StoreServiceTest {
 		assertThat(storeDTO).isNotNull();
 		assertEquals(storeDTO.getDescription(), store.getDescription());
 	}
+	
+	@Test
+	void testSearchStoresByKeyword() {
+		long totalRecord = 0;
+		List<StoreDTO> storeDTOList = new ArrayList<StoreDTO>();
+		Pageable pageable = PageRequest.of(0, 10);
+		Page<Store> mockStoresPage = new PageImpl<>(mockStores, pageable, mockStores.size());
+		String searchKeyword = "Mu";
+
+		Mockito.when(storeRepository.searchStoresByKeyword(searchKeyword, false ,pageable)).thenReturn(mockStoresPage);
+
+		Map<Long, List<StoreDTO>> storePages = storeService.searchStoresByKeyword(searchKeyword, false ,pageable);
+		for (Map.Entry<Long, List<StoreDTO>> entry : storePages.entrySet()) {
+			totalRecord = entry.getKey();
+			storeDTOList = entry.getValue();
+
+		}
+
+		assertThat(totalRecord).isGreaterThan(0);
+		assertThat(storeDTOList.get(0).getStoreName()).isEqualTo("MUJI");
+	}
+	
 
 }
