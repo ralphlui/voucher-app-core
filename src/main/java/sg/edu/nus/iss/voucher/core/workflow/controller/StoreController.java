@@ -53,26 +53,28 @@ public class StoreController {
 
 
 	@GetMapping(value = "", produces = "application/json")
-	public ResponseEntity<APIResponse<List<StoreDTO>>> getAllActiveStoreList(@RequestParam(defaultValue = "0") int page,
+	public ResponseEntity<APIResponse<List<StoreDTO>>> getAllActiveStoreList(@RequestParam(defaultValue = "") String query, @RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "500") int size) {
 		logger.info("Call store getAll API with page={}, size={}", page, size);
 
 		try {
 
 			Pageable pageable = PageRequest.of(page, size, Sort.by("storeName").ascending());
-			Map<Long, List<StoreDTO>> resultMap = storeService.getAllActiveStoreList(pageable);
+			Map<Long, List<StoreDTO>> resultMap = storeService.getAllActiveStoreList(query, pageable);
             logger.info("size" + resultMap.size());
             
             Map.Entry<Long, List<StoreDTO>> firstEntry = resultMap.entrySet().iterator().next();
 			long totalRecord = firstEntry.getKey();
 			List<StoreDTO> storeDTOList = firstEntry.getValue();
+			String message = "";
 			
 			if (storeDTOList.size() > 0) {
+				message = query.isEmpty() ? "Successfully get all active store." : "Successfully retrieved searched stores.";
 				return ResponseEntity.status(HttpStatus.OK).body(
-						APIResponse.success(storeDTOList, "Successfully get all active store.", totalRecord));
+						APIResponse.success(storeDTOList, message, totalRecord));
 
 			} else {
-				String message = "No Active Store List.";
+				message =  query.isEmpty() ? "No Active Store List." : "No stores found matching the keyword "+ query;;
 				logger.error(message);
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.noList(storeDTOList, message));
 			}
@@ -234,4 +236,5 @@ public class StoreController {
 		}
 
 	}
+	
 }
