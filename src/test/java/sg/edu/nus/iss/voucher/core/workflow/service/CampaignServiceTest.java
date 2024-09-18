@@ -1,8 +1,6 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.any;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.times;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,9 +11,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,8 +33,8 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
 
 @SpringBootTest
 @Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class CampaignServiceTest {
 
 	@MockBean
@@ -82,13 +79,12 @@ public class CampaignServiceTest {
 		List<CampaignDTO> campaignDTOList = new ArrayList<CampaignDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Campaign> mockCampaignPage = new PageImpl<>(mockCampaigns, pageable, mockCampaigns.size());
-		Mockito.when(campaignRepository.findByCampaignStatusIn(Arrays.asList(CampaignStatus.PROMOTED)))
-				.thenReturn(mockCampaigns);
+		
+		
+		Mockito.when(campaignRepository.findByCampaignStatusInAndDescriptionLike(Arrays.asList(CampaignStatus.PROMOTED),campaign1.getDescription(), pageable))
+		.thenReturn(mockCampaignPage);
 
-		Mockito.when(campaignRepository.findByCampaignStatusIn(Arrays.asList(CampaignStatus.PROMOTED), pageable))
-				.thenReturn(mockCampaignPage);
-
-		Map<Long, List<CampaignDTO>> campaignPage = campaignService.findAllActiveCampaigns(pageable);
+		Map<Long, List<CampaignDTO>> campaignPage = campaignService.findAllActiveCampaigns(campaign1.getDescription(),pageable);
 		for (Map.Entry<Long, List<CampaignDTO>> entry : campaignPage.entrySet()) {
 			totalRecord = entry.getKey();
 			campaignDTOList = entry.getValue();
@@ -108,7 +104,7 @@ public class CampaignServiceTest {
 
 		Mockito.when(campaignRepository.findByStoreStoreId(store.getStoreId(), pageable)).thenReturn(mockCampaignPage);
 		Map<Long, List<CampaignDTO>> campaignPage = campaignService
-				.findAllCampaignsByStoreId(campaign1.getStore().getStoreId(), pageable);
+				.findAllCampaignsByStoreId(campaign1.getStore().getStoreId(),"", pageable);
 
 		for (Map.Entry<Long, List<CampaignDTO>> entry : campaignPage.entrySet()) {
 			totalRecord = entry.getKey();
@@ -131,7 +127,7 @@ public class CampaignServiceTest {
 		Mockito.when(campaignRepository.findByCreatedBy(campaign1.getCreatedBy(), pageable))
 				.thenReturn(mockCampaignPage);
 		Map<Long, List<CampaignDTO>> campaignPage = campaignService
-				.findAllCampaignsByEmail(campaign1.getCreatedBy(), pageable);
+				.findAllCampaignsByUserId(campaign1.getCreatedBy(),"", pageable);
 
 		for (Map.Entry<Long, List<CampaignDTO>> entry : campaignPage.entrySet()) {
 			totalRecord = entry.getKey();
@@ -218,28 +214,25 @@ public class CampaignServiceTest {
 		assertEquals(mockCampaigns.get(1).getCampaignId(), campaignDTOList.get(1).getCampaignId());
 	}
 	
+	
+	
 	@Test
 	void testExpiredCampaigns() {
 
 	    campaign1.setEndDate(LocalDateTime.now().minusDays(2));
 	    campaign2.setEndDate(LocalDateTime.now().minusDays(3));
+	    campaign1.setCampaignStatus(CampaignStatus.EXPIRED);
+	    campaign2.setCampaignStatus(CampaignStatus.EXPIRED);
 
-	    Mockito.when(campaignRepository.findByEndDateBefore(Mockito.any(LocalDateTime.class)))
+	    Mockito.when(campaignRepository.findByEndDateBeforeAndCampaignStatusNot(Mockito.any(LocalDateTime.class), eq(CampaignStatus.EXPIRED)))
 	        .thenReturn(Arrays.asList(campaign1, campaign2));
 
-	    Mockito.when(campaignRepository.save(Mockito.any(Campaign.class)))
-	        .thenAnswer(invocation -> {
-	            Campaign campaign = invocation.getArgument(0);
-	            campaign.setCampaignStatus(CampaignStatus.EXPIRED);  // Simulate setting the status to EXPIRED
-	            return campaign;
-	        });
+	    Mockito.when(campaignRepository.updateExpiredCampaigns(Mockito.any(LocalDateTime.class))).thenReturn(2);
 
-	    List<Campaign> result = campaignService.expired();
+	    int result = campaignService.expired();
 
-	    assertEquals(2, result.size(), "Expected 2 expired campaigns");
+	    assertEquals(2, result, "Expected 2 expired campaigns");
 
-	    assertEquals(CampaignStatus.EXPIRED, result.get(0).getCampaignStatus(), "First campaign should be expired");
-	    assertEquals(CampaignStatus.EXPIRED, result.get(1).getCampaignStatus(), "Second campaign should be expired");
 
 	}
 

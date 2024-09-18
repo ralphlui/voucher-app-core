@@ -11,11 +11,11 @@ import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
 
 public interface ICampaignService {
 
-	Map<Long, List<CampaignDTO>> findAllActiveCampaigns(Pageable pageable);
+	Map<Long, List<CampaignDTO>> findAllActiveCampaigns(String description,Pageable pageable);
 
-	Map<Long, List<CampaignDTO>> findAllCampaignsByStoreId(String storeId, Pageable pageable);
+	Map<Long, List<CampaignDTO>> findAllCampaignsByStoreId(String storeId,String description, Pageable pageable);
 
-	Map<Long, List<CampaignDTO>> findAllCampaignsByEmail(String storeId, Pageable pageable);
+	Map<Long, List<CampaignDTO>> findAllCampaignsByUserId(String userId,String description, Pageable pageable);
 
 	CampaignDTO findByCampaignId(String campaignId);
 
@@ -25,7 +25,7 @@ public interface ICampaignService {
 
 	CampaignDTO promote(String campaignId,String userId);
 
-	List<Campaign> expired();
+	int expired();
 
 	List<Campaign> findByDescription(String description);
 

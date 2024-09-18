@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -45,13 +46,20 @@ public class CampaignService implements ICampaignService {
 	private SNSPublishingService messagePublishService;
 
 	@Override
-	public Map<Long, List<CampaignDTO>> findAllActiveCampaigns(Pageable pageable) {
+	public Map<Long, List<CampaignDTO>> findAllActiveCampaigns(String description,Pageable pageable) {
 		logger.info("Getting all active campaigns...");
 		Map<Long, List<CampaignDTO>> result = new HashMap<>();
 		List<CampaignDTO> campaignDTOList = new ArrayList<>();
-
-		Page<Campaign> campaignPages = campaignRepository.findByCampaignStatusIn(Arrays.asList(CampaignStatus.PROMOTED),
-				pageable);
+		Page<Campaign> campaignPages = null ; 
+		
+		if (description.isEmpty()) {
+			campaignPages = campaignRepository.findByCampaignStatusIn(Arrays.asList(CampaignStatus.PROMOTED),
+					pageable);
+		}else {
+			campaignPages = campaignRepository.findByCampaignStatusInAndDescriptionLike(Arrays.asList(CampaignStatus.PROMOTED),description,
+					pageable);
+		}
+		
 		long totalRecord = campaignPages.getTotalElements();
 
 		if (totalRecord > 0) {
@@ -71,10 +79,17 @@ public class CampaignService implements ICampaignService {
 	}
 
 	@Override
-	public Map<Long, List<CampaignDTO>> findAllCampaignsByStoreId(String storeId, Pageable pageable) {
+	public Map<Long, List<CampaignDTO>> findAllCampaignsByStoreId(String storeId,String description, Pageable pageable) {
 		logger.info("Getting all campaigns by Store Id...");
 		Map<Long, List<CampaignDTO>> result = new HashMap<>();
-		Page<Campaign> campaignPages = campaignRepository.findByStoreStoreId(storeId, pageable);
+		Page<Campaign> campaignPages = null ;
+		
+		if (description.isEmpty()) {
+			 campaignPages = campaignRepository.findByStoreStoreId(storeId, pageable);
+		}else {
+			 campaignPages = campaignRepository.findByStoreStoreIdAndDescriptionLike(storeId,description, pageable);
+		}
+	
 		long totalRecord = campaignPages.getTotalElements();
 		List<CampaignDTO> campaignDTOList = new ArrayList<>();
 
@@ -116,11 +131,17 @@ public class CampaignService implements ICampaignService {
 	}
 
 	@Override
-	public Map<Long, List<CampaignDTO>> findAllCampaignsByEmail(String email, Pageable pageable) {
+	public Map<Long, List<CampaignDTO>> findAllCampaignsByUserId(String userId,String description, Pageable pageable) {
 		logger.info("Getting all campaigns by email...");
 		Map<Long, List<CampaignDTO>> result = new HashMap<>();
+		Page<Campaign> campaignPages = null;
+		
+		if (description.isEmpty()) {
+			campaignPages = campaignRepository.findByCreatedBy(userId, pageable);
+		}else {
+			campaignPages = campaignRepository.findByCreatedByAndDescriptionLike(userId,description, pageable);
+		}
 
-		Page<Campaign> campaignPages = campaignRepository.findByCreatedBy(email, pageable);
 		long totalRecord = campaignPages.getTotalElements();
 		List<CampaignDTO> campaignDTOList = new ArrayList<>();
 		if (totalRecord > 0) {
@@ -250,29 +271,18 @@ public class CampaignService implements ICampaignService {
 		// TODO Auto-generated method stub
 		return campaignRepository.findById(campaignId);
 	}
-
+	
 	@Override
-	public List<Campaign> expired() {
-		List<Campaign> expiredList = new ArrayList<Campaign>();
-		try {
-			List<Campaign> dbCampaigns = campaignRepository.findByEndDateBefore(LocalDateTime.now());
-			  if (!dbCampaigns.isEmpty()) {
-				for (Campaign campaing : dbCampaigns) {
-					campaing.setCampaignStatus(CampaignStatus.EXPIRED);
-					campaing.setUpdatedDate(LocalDateTime.now());
-					logger.info("Update campaign...");
-					Campaign savedCampaign = campaignRepository.save(campaing);
-					logger.info("Saved successfully...");
-					expiredList.add(savedCampaign);
-				}
-			}
-
-		} catch (Exception ex) {
-			logger.error("Campaign expiring exception... {}", ex.toString());
-
+	public int expired() {
+		int updatedCount = 0;
+		List<Campaign> campaigns = campaignRepository.findByEndDateBeforeAndCampaignStatusNot(LocalDateTime.now(),
+				CampaignStatus.EXPIRED);
+		if (campaigns.size() > 0) {
+			updatedCount = campaignRepository.updateExpiredCampaigns(LocalDateTime.now());
+			logger.info("Updated {} campaigns", updatedCount);
 		}
-		return expiredList;
-
+		return updatedCount;
 	}
 
+	
 }

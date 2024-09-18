@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
 
@@ -17,7 +19,7 @@ public class CampaignExpireWatcherHandler {
 	private CampaignService campaignService;
 
 
-	@Scheduled(fixedDelay = 300000) // 5 minutes = 300,000 milliseconds
+	@Scheduled(fixedDelay = 300000)
 	public void run() {
 
 		logger.info("Star Run CampaignExpireWatcherHandler...");

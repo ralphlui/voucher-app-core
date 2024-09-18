@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.amazonaws.services.s3.AmazonS3;
 
+import sg.edu.nus.iss.voucher.core.workflow.configuration.AWSConfig;
 import sg.edu.nus.iss.voucher.core.workflow.configuration.VoucherCoreSecurityConfig;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
@@ -39,7 +40,7 @@ public class StoreService implements IStoreService {
 	private AmazonS3 s3Client;
 
 	@Autowired
-	private VoucherCoreSecurityConfig securityConfig;
+	private AWSConfig securityConfig;
 	
 
 	@Override

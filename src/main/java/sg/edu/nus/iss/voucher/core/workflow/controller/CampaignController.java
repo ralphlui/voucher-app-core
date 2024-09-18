@@ -30,6 +30,7 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.impl.CampaignValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.*;
 
+
 @RestController
 @Validated
 @RequestMapping("/api/core/campaigns")
@@ -42,16 +43,19 @@ public class CampaignController {
 
 	@Autowired
 	private CampaignValidationStrategy campaignValidationStrategy;
+	
+
 
 	@GetMapping(value = "", produces = "application/json")
-	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllActiveCampaigns(
+	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllActiveCampaigns(@RequestParam(defaultValue = "") String description,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-		logger.info("Calling Campaign getAllActiveCampaigns API with page={}, size={}", page, size);
+		logger.info("Calling Campaign getAllActiveCampaigns API with description={}, page={}, size={}",description, page, size);
 
 		try {
+			
 			Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
-			Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllActiveCampaigns(pageable);
-
+			Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllActiveCampaigns(description,pageable);
+			
 			if (resultMap.isEmpty()) {
 				String message = "Campaign not found.";
 				logger.error(message);
@@ -83,9 +87,9 @@ public class CampaignController {
 
 	@GetMapping(value = "/stores/{storeId}", produces = "application/json")
 	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllCampaignsByStoreId(
-			@PathVariable("storeId") String storeId, @RequestParam(defaultValue = "") String status,
+			@PathVariable("storeId") String storeId, @RequestParam(defaultValue = "") String status,@RequestParam(defaultValue = "") String description,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-		logger.info("Calling Campaign getAllCampaignsByStoreId API with page={}, size={}", page, size);
+		logger.info("Calling Campaign getAllCampaignsByStoreId API with status={}, description={}, page={}, size={}",status,description, page, size);
 
 		try {
 			storeId = GeneralUtility.makeNotNull(storeId).trim();
@@ -99,7 +103,7 @@ public class CampaignController {
 			Map<Long, List<CampaignDTO>> resultMap;
 
 			if (status.isEmpty()) {
-				resultMap = campaignService.findAllCampaignsByStoreId(storeId, pageable);
+				resultMap = campaignService.findAllCampaignsByStoreId(storeId, description, pageable);
 			} else {
 				try {
 					CampaignStatus campaignStatus = CampaignStatus.valueOf(status);
@@ -142,17 +146,17 @@ public class CampaignController {
 
 	@GetMapping(value = "/users/{userId}", produces = "application/json")
 	public ResponseEntity<APIResponse<List<CampaignDTO>>> getCampaignsByUserId(@PathVariable("userId") String userId,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+			@RequestParam(defaultValue = "") String description,@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		long totalRecord = 0;
 		try {
-			logger.info("Calling Campaign getAllCampaignsByEmail API with page={}, size={}", page, size);
+			logger.info("Calling Campaign getAllCampaignsByEmail API with description={}, page={}, size={}",description, page, size);
 
 			userId = GeneralUtility.makeNotNull(userId).trim();
 
 			if (!userId.equals("")) {
 				Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
 
-				Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllCampaignsByEmail(userId, pageable);
+				Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllCampaignsByUserId(userId,description, pageable);
 
 				if (resultMap.size() == 0) {
 					String message = "Campign not found.";
@@ -280,7 +284,7 @@ public class CampaignController {
 				} else {
 					message = validationResult.getMessage();
 					logger.error(message);
-					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 				}
 			} else {
 				logger.error("Bad Request:Campaign ID could not be blank.");

@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import net.minidev.json.writer.JsonReader;
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
@@ -99,7 +98,7 @@ public class CampaignControllerTest {
 		Map<Long, List<CampaignDTO>> mockCampaignMap = new HashMap<>();
 		mockCampaignMap.put(0L, mockCampaigns);
 
-		Mockito.when(campaignService.findAllActiveCampaigns(pageable)).thenReturn(mockCampaignMap);
+		Mockito.when(campaignService.findAllActiveCampaigns("",pageable)).thenReturn(mockCampaignMap);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns").param("page", "0").param("size", "10")
 				.contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isOk())
@@ -116,7 +115,7 @@ public class CampaignControllerTest {
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("startDate").ascending());
 
-        Mockito.when(campaignService.findAllActiveCampaigns(pageable)).thenReturn(mockCampaignMap);
+        Mockito.when(campaignService.findAllActiveCampaigns(campaign1.getDescription(),pageable)).thenReturn(mockCampaignMap);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns")
                 .param("page", "0").param("size", "10")
@@ -134,7 +133,7 @@ public class CampaignControllerTest {
 		Map<Long, List<CampaignDTO>> mockCampaignMap = new HashMap<>();
 		mockCampaignMap.put(0L, mockCampaigns);
 
-		Mockito.when(campaignService.findAllCampaignsByStoreId(store.getStoreId(), pageable))
+		Mockito.when(campaignService.findAllCampaignsByStoreId(campaign1.getStore().getStoreId(),"", pageable))
 				.thenReturn(mockCampaignMap);
 		mockMvc.perform(
 				MockMvcRequestBuilders.get("/api/core/campaigns/stores/{storeId}", store.getStoreId()).param("page", "0").param("size", "10")
@@ -155,7 +154,7 @@ public class CampaignControllerTest {
         Map<Long, List<CampaignDTO>> mockCampaignMap = new HashMap<>();
 		mockCampaignMap.put(0L, mockCampaigns);
 		
-        Mockito.when(campaignService.findAllCampaignsByEmail(userId, pageable)).thenReturn(mockCampaignMap);
+        Mockito.when(campaignService.findAllCampaignsByUserId(userId,"", pageable)).thenReturn(mockCampaignMap);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns/users/{userId}", userId)
                 .param("page", String.valueOf(page))

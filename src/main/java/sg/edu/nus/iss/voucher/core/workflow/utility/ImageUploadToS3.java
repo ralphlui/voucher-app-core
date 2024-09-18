@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectResult;
 
+import sg.edu.nus.iss.voucher.core.workflow.configuration.AWSConfig;
 import sg.edu.nus.iss.voucher.core.workflow.configuration.VoucherCoreSecurityConfig;
 
 @Component
@@ -18,9 +19,9 @@ public class ImageUploadToS3 {
 	private static final Logger logger = LoggerFactory.getLogger(ImageUploadToS3.class);
 
 	public static boolean checkImageExistBeforeUpload(AmazonS3 s3Client, MultipartFile multipartFile,
-			VoucherCoreSecurityConfig securityConfig, String keyPrefix) {
+			AWSConfig awsConfig, String keyPrefix) {
 		try {
-			boolean isImageExists = s3Client.doesObjectExist(securityConfig.getS3Bucket(),
+			boolean isImageExists = s3Client.doesObjectExist(awsConfig.getS3Bucket(),
 					keyPrefix.trim() + multipartFile.getOriginalFilename().trim());
 
 			logger.info("Image already uploaded to s3. " + isImageExists);
@@ -28,7 +29,7 @@ public class ImageUploadToS3 {
 			if (!isImageExists) {
 				boolean isUploaded  = false;
 				
-				 isUploaded = ImageUploadToS3.imageUpload(s3Client, multipartFile, securityConfig, keyPrefix);
+				 isUploaded = ImageUploadToS3.imageUpload(s3Client, multipartFile, awsConfig, keyPrefix);
 				
 				if (isUploaded) {
 					return true;
@@ -45,9 +46,9 @@ public class ImageUploadToS3 {
 	
 
 	public static boolean imageUpload(AmazonS3 s3Client, MultipartFile multipartFile,
-			VoucherCoreSecurityConfig securityConfig, String keyPrefix) {
+			AWSConfig awsConfig, String keyPrefix) {
 
-		String bucketName = securityConfig.getS3Bucket().trim();
+		String bucketName = awsConfig.getS3Bucket().trim();
 		String uploadFileName = multipartFile.getOriginalFilename();
 
 		try {

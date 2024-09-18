@@ -1,6 +1,5 @@
 package sg.edu.nus.iss.voucher.core.workflow.aws.service;
 
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,9 +18,6 @@ import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 @SpringBootTest
 @Transactional

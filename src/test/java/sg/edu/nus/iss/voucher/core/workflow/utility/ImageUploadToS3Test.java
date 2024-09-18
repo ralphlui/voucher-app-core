@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectResult;
 
+import sg.edu.nus.iss.voucher.core.workflow.configuration.AWSConfig;
 import sg.edu.nus.iss.voucher.core.workflow.configuration.VoucherCoreSecurityConfig;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class ImageUploadToS3Test {
 	private MultipartFile multipartFile;
 
 	@Mock
-	private VoucherCoreSecurityConfig securityConfig;
+	private AWSConfig awsConfig;
 
 	@Mock
 	private GeneratePresignedUrlRequest generatePresignedUrlRequest;
@@ -66,14 +67,14 @@ public class ImageUploadToS3Test {
 	public void testImageUpload() throws IOException {
 
 
-		Mockito.when(securityConfig.getS3Bucket()).thenReturn(bucketName);
+		Mockito.when(awsConfig.getS3Bucket()).thenReturn(bucketName);
 
 		Mockito.when(multipartFile.isEmpty()).thenReturn(false);
 		Mockito.when(multipartFile.getOriginalFilename()).thenReturn(fileName);
 
 		Mockito.when(s3Client.putObject(any(), any(), any(), any())).thenReturn(mock(PutObjectResult.class));
 
-		boolean result = ImageUploadToS3.imageUpload(s3Client, multipartFile, securityConfig, keyPrefix);
+		boolean result = ImageUploadToS3.imageUpload(s3Client, multipartFile, awsConfig, keyPrefix);
 
 		assertTrue(result);
 
@@ -87,10 +88,10 @@ public class ImageUploadToS3Test {
 		String keyPrefix = "images/";
 
 		Mockito.when(multipartFile.getOriginalFilename()).thenReturn("test.jpg");
-		Mockito.when(securityConfig.getS3Bucket()).thenReturn(bucketName);
+		Mockito.when(awsConfig.getS3Bucket()).thenReturn(bucketName);
 		Mockito.when(s3Client.doesObjectExist(bucketName, imageKey)).thenReturn(true);
 
-		boolean result = ImageUploadToS3.checkImageExistBeforeUpload(s3Client, multipartFile, securityConfig,
+		boolean result = ImageUploadToS3.checkImageExistBeforeUpload(s3Client, multipartFile, awsConfig,
 				keyPrefix);
 
 		assertTrue(result);
@@ -103,11 +104,11 @@ public class ImageUploadToS3Test {
 		String keyPrefix = "images/";
 
 		Mockito.when(multipartFile.getOriginalFilename()).thenReturn("image.jpg");
-		Mockito.when(securityConfig.getS3Bucket()).thenReturn(bucketName);
+		Mockito.when(awsConfig.getS3Bucket()).thenReturn(bucketName);
 		Mockito.when(s3Client.doesObjectExist(bucketName, imageKey)).thenReturn(false);
 		Mockito.when(s3Client.putObject(any(), any(), any(), any())).thenReturn(mock(PutObjectResult.class));
 
-		boolean result = ImageUploadToS3.checkImageExistBeforeUpload(s3Client, multipartFile, securityConfig,
+		boolean result = ImageUploadToS3.checkImageExistBeforeUpload(s3Client, multipartFile, awsConfig,
 				keyPrefix);
 
 		assertTrue(result);
