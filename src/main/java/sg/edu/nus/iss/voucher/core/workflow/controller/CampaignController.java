@@ -7,6 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,14 +20,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
-import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
-import sg.edu.nus.iss.voucher.core.workflow.service.impl.CampaignService;
+import sg.edu.nus.iss.voucher.core.workflow.enums.*;
+import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.impl.CampaignValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.*;
 
@@ -44,21 +46,29 @@ public class CampaignController {
 	@Autowired
 	private CampaignValidationStrategy campaignValidationStrategy;
 	
-
+	@Autowired
+	private AuditService auditService;
+	
+	
+	@Value("${audit.activity.type.prefix}")
+	String activityTypePrefix;
 
 	@GetMapping(value = "", produces = "application/json")
-	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllActiveCampaigns(@RequestParam(defaultValue = "") String description,
+	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllActiveCampaigns(@RequestHeader("X-User-Id") String userId,@RequestParam(defaultValue = "") String description,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-		logger.info("Calling Campaign getAllActiveCampaigns API with description={}, page={}, size={}",description, page, size);
+		logger.info("Calling Campaign getAllActiveCampaigns API with userId={}, description={}, page={}, size={}",userId,description, page, size);
+		
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Active Campaign List", activityTypePrefix,"/api/core/campaigns", HTTPVerb.GET);
 
 		try {
-			
+			String message="";
 			Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
 			Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllActiveCampaigns(description,pageable);
 			
 			if (resultMap.isEmpty()) {
-				String message = "Campaign not found.";
+			    message = "Campaign not found.";
 				logger.error(message);
+				auditService.logAudit(auditDTO,404,message);
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 			}
 
@@ -70,33 +80,45 @@ public class CampaignController {
 			logger.info("CampaignDTO List: {}", campaignDTOList);
 
 			if (campaignDTOList.size() > 0) {
+				message ="Successfully get all active campaigns.";
+				
+				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK).body(
-						APIResponse.success(campaignDTOList, "Successfully get all active campaigns.", totalRecord));
+						APIResponse.success(campaignDTOList, message, totalRecord));
 
 			} else {
-				String message = "Campaign not found.";
+				message = "Campaign not found.";
 				logger.error(message);
+				auditService.logAudit(auditDTO,404,message);
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
 			logger.error("An error occurred while processing getAllActiveCampaigns API.", ex);
+			String message="An error occurred while processing getAllActiveCampaigns API.";
+			auditDTO.setRemarks(ex.toString());
+			auditService.logAudit(auditDTO,500,message);		
+			
 			throw ex;
 		}
 	}
 
+
 	@GetMapping(value = "/stores/{storeId}", produces = "application/json")
-	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllCampaignsByStoreId(
+	public ResponseEntity<APIResponse<List<CampaignDTO>>> getAllCampaignsByStoreId(@RequestHeader("X-User-Id") String userId,
 			@PathVariable("storeId") String storeId, @RequestParam(defaultValue = "") String status,@RequestParam(defaultValue = "") String description,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-		logger.info("Calling Campaign getAllCampaignsByStoreId API with status={}, description={}, page={}, size={}",status,description, page, size);
-
+		logger.info("Calling Campaign getAllCampaignsByStoreId API with userId={}, status={}, description={}, page={}, size={}",userId,status,description, page, size);
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Campaign List by Store", activityTypePrefix,"/api/core/campaigns/stores/"+storeId, HTTPVerb.GET);
+		String message="";
 		try {
 			storeId = GeneralUtility.makeNotNull(storeId).trim();
 			if (storeId.isEmpty()) {
-				logger.error("Bad Request: Store ID could not be blank.");
+				message = "Bad Request: Store ID could not be blank.";
+				logger.error(message);
+				auditService.logAudit(auditDTO,400,message);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body(APIResponse.error("Bad Request: Store ID could not be blank."));
+						.body(APIResponse.error(message));
 			}
 
 			Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
@@ -109,14 +131,21 @@ public class CampaignController {
 					CampaignStatus campaignStatus = CampaignStatus.valueOf(status);
 					resultMap = campaignService.findByStoreIdAndStatus(storeId, campaignStatus, pageable);
 				} catch (IllegalArgumentException ex) {
-					logger.error("Failed to get all campaigns by store Id. Campaign Status is invalid.", ex);
+					
+					message ="Failed to get all campaigns by store Id. Campaign Status is invalid.";
+					logger.error(message, ex);
+					auditDTO.setRemarks(ex.toString());
+					auditService.logAudit(auditDTO,404,message);
+					
 					throw ex;
 				}
 			}
 
 			if (resultMap.isEmpty()) {
-				String message = "Campaign not found by storeId: " + storeId;
+				 message = "Campaign not found by storeId: " + storeId;
 				logger.error(message);
+				
+				auditService.logAudit(auditDTO,404,message);
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 			}
 
@@ -127,30 +156,39 @@ public class CampaignController {
 			logger.info("Total record: {}", totalRecord);
 			logger.info("CampaignDTO List: {}", campaignDTOList);
 			if (campaignDTOList.size() > 0) {
+				message ="Successfully get all active campaigns.";
+				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK).body(
 						APIResponse.success(campaignDTOList, "Successfully get all active campaigns", totalRecord));
 
 			} else {
-				String message = "Campaign not found by storeId: " + storeId;
+				 message = "Campaign not found by storeId: " + storeId;
 				logger.error(message);
+				auditService.logAudit(auditDTO,404,message);
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
+			message ="Calling Campaign getAllCampaignsByStoreId API failed. Failed to get all campaigns by store Id." ;
 			logger.error(
-					"Calling Campaign getAllCampaignsByStoreId API failed. Failed to get all campaigns by store Id.",
+					message,
 					ex);
+			auditDTO.setRemarks(ex.toString());
+			auditService.logAudit(auditDTO,500,message);
 			throw ex;
 		}
 	}
 
 	@GetMapping(value = "/users/{userId}", produces = "application/json")
-	public ResponseEntity<APIResponse<List<CampaignDTO>>> getCampaignsByUserId(@PathVariable("userId") String userId,
+	public ResponseEntity<APIResponse<List<CampaignDTO>>> getCampaignsByUserId(@RequestHeader("X-User-Id") String xUserId,@PathVariable("userId") String userId,
 			@RequestParam(defaultValue = "") String description,@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		long totalRecord = 0;
-		try {
-			logger.info("Calling Campaign getAllCampaignsByEmail API with description={}, page={}, size={}",description, page, size);
+		logger.info("Calling Campaign getAllCampaignsByEmail API with userId={}, description={}, page={}, size={}",xUserId,description, page, size);
 
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Campaign List by User", activityTypePrefix,"/api/core/campaigns/users/"+userId, HTTPVerb.GET);
+		String message="";
+		try {
+			
 			userId = GeneralUtility.makeNotNull(userId).trim();
 
 			if (!userId.equals("")) {
@@ -159,8 +197,9 @@ public class CampaignController {
 				Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllCampaignsByUserId(userId,description, pageable);
 
 				if (resultMap.size() == 0) {
-					String message = "Campign not found.";
+					 message = "Campign not found.";
 					logger.error(message);
+					auditService.logAudit(auditDTO,400,message);
 					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 				}
 
@@ -176,28 +215,41 @@ public class CampaignController {
 				}
 
 				if (campaignDTOList.size() > 0) {
-
+					message="Successfully get all campaigns by user.";
+					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(campaignDTOList,
-							"Successfully get all campaigns by user", totalRecord));
+							message, totalRecord));
 
 				} else {
+					message = "Campaign not found by user: " + userId;
+					auditService.logAudit(auditDTO,404,message);
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
-							.body(APIResponse.error("Campaign not found by user: " + userId));
+							.body(APIResponse.error(message));
 				}
 			} else {
-				logger.error("Bad Request:Email could not be blank.");
+				message = "Bad Request:Email could not be blank.";
+				logger.error(message);
+				auditService.logAudit(auditDTO,400,message);
+				
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body(APIResponse.error("Bad Request:UserId could not be blank."));
 			}
 
 		} catch (Exception ex) {
-			logger.info("Calling Campaign getAllCampaignsByEmail API failed...Failed to get all campaigns by user");
+			message = "Calling Campaign getAllCampaignsByEmail API failed...Failed to get all campaigns by user";
+			logger.error(message);
+			auditDTO.setRemarks(ex.toString());
+			auditService.logAudit(auditDTO,500,message);
+			
 			throw ex;
 		}
 	}
 
 	@GetMapping(value = "/{id}", produces = "application/json")
-	public ResponseEntity<APIResponse<CampaignDTO>> getByCampaignId(@PathVariable("id") String id) {
+	public ResponseEntity<APIResponse<CampaignDTO>> getByCampaignId(@RequestHeader("X-User-Id") String userId,@PathVariable("id") String id) {
+	
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Find Campaign by Id", activityTypePrefix,"/api/core/campaigns/"+id, HTTPVerb.GET);
+		String message="";
 		try {
 			logger.info("Calling get Campaign API...");
 
@@ -208,63 +260,91 @@ public class CampaignController {
 				CampaignDTO campaignDTO = campaignService.findByCampaignId(campaignId);
 
 				if (campaignDTO.getCampaignId().equals(campaignId)) {
+					message =  "Successfully get campaignId " + campaignId;
+					
+					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK)
-							.body(APIResponse.success(campaignDTO, "Successfully get campaignId " + campaignId));
+							.body(APIResponse.success(campaignDTO,message));
 				} else {
+					message = "Campaign not found by campaignId: " + campaignId;
+					
+					auditService.logAudit(auditDTO,404,message);
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
-							.body(APIResponse.error("Campaign not found by campaignId: " + campaignId));
+							.body(APIResponse.error(message));
 
 				}
 
 			} else {
-				logger.error("Bad Request:Campaign ID could not be blank.");
+				message = "Bad Request:CampaignId could not be blank.";
+				logger.error(message);
+				auditService.logAudit(auditDTO,400,message);
+				
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body(APIResponse.error("Bad Request:CampaignId could not be blank."));
+						.body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
-			logger.error("Calling Campaign get Campaign API failed...");
+			message = "Calling Campaign get Campaign API failed.";
+			logger.error(message);
+			auditDTO.setRemarks(ex.toString());
+			auditService.logAudit(auditDTO,500,message);
 			throw ex;
 		}
 
 	}
 
 	@PostMapping(value = "", produces = "application/json")
-	public ResponseEntity<APIResponse<CampaignDTO>> createCampaign(@RequestBody Campaign campaign) {
+	public ResponseEntity<APIResponse<CampaignDTO>> createCampaign(@RequestHeader("X-User-Id") String userId,@RequestBody Campaign campaign) {
+		
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Create Campaign", activityTypePrefix,"/api/core/campaigns", HTTPVerb.POST);
+		String message="";
+		
 		try {
 			logger.info("Calling Campaign create API...");
-			String message = "";
+			
 			ValidationResult validationResult = campaignValidationStrategy.validateCreation(campaign, null);
 			if (validationResult.isValid()) {
 
 				CampaignDTO campaignDTO = campaignService.create(campaign);
 				if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
+					message ="Created successfully";
+					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK)
-							.body(APIResponse.success(campaignDTO, "Created successfully"));
+							.body(APIResponse.success(campaignDTO,message));
 				} else {
-					logger.error("Failed to create campaign.");
+					message ="Failed to create campaign.";
+					auditService.logAudit(auditDTO,500,message);
+					logger.error(message);
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-							.body(APIResponse.error("Create Campaign failed."));
+							.body(APIResponse.error(message));
 				}
 
 			} else {
 				message = validationResult.getMessage();
 				logger.error(message);
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+				auditService.logAudit(auditDTO,400,message);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
-			logger.error("An error occurred while processing createCampaign API.", ex);
+			message ="An error occurred while processing Create Campaign API.";
+			auditDTO.setRemarks(ex.toString());
+			
+			logger.error(message, ex);
+			auditService.logAudit(auditDTO,500,message);
 			throw ex;
 		}
 	}
 
 	@PutMapping(value = "/{id}", produces = "application/json")
-	public ResponseEntity<APIResponse<CampaignDTO>> updateCampaign(@PathVariable("id") String id,
+	public ResponseEntity<APIResponse<CampaignDTO>> updateCampaign(@RequestHeader("X-User-Id") String userId,@PathVariable("id") String id,
 			@RequestBody Campaign campaign) {
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Update Campaign", activityTypePrefix,"/api/core/campaigns/"+id, HTTPVerb.PUT);
+		String message="";
+		
 		try {
 			logger.info("Calling Campaign update API...");
-			String message = "";
+			
 			String campaignId = GeneralUtility.makeNotNull(id).trim();
 
 			if (!campaignId.equals("")) {
@@ -273,8 +353,10 @@ public class CampaignController {
 				if (validationResult.isValid()) {
 					CampaignDTO campaignDTO = campaignService.update(campaign);
 					if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
+						message ="Updated sucessfully.";
+						auditService.logAudit(auditDTO,200,message);
 						return ResponseEntity.status(HttpStatus.OK)
-								.body(APIResponse.success(campaignDTO, "Updated sucessfully"));
+								.body(APIResponse.success(campaignDTO, message));
 					} else {
 						logger.error("Calling Campaign create API failed...");
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
@@ -284,52 +366,71 @@ public class CampaignController {
 				} else {
 					message = validationResult.getMessage();
 					logger.error(message);
+					auditService.logAudit(auditDTO,404,message);
 					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 				}
 			} else {
-				logger.error("Bad Request:Campaign ID could not be blank.");
+				message ="Bad Request:Campaign ID could not be blank.";
+				logger.error(message);
+				auditService.logAudit(auditDTO,400,message);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body(APIResponse.error("Bad Request:CampaignId could not be blank."));
+						.body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
-			logger.info("Calling Campaign update API failed..." + ex.toString());
+			message ="An error occurred while processing Update Campaign API.";
+			auditDTO.setRemarks(ex.toString());
+			
+			logger.info(message);
+			auditService.logAudit(auditDTO,500,message);
 			throw ex;
 		}
 	}
 
 	@PatchMapping(value = "/{campaignId}/users/{userId}/promote", produces = "application/json")
-	public ResponseEntity<APIResponse<CampaignDTO>> promoteCampaign(@PathVariable("campaignId") String campaignId,
+	public ResponseEntity<APIResponse<CampaignDTO>> promoteCampaign(@RequestHeader("X-User-Id") String xUserId,@PathVariable("campaignId") String campaignId,
 			@PathVariable("userId") String userId) {
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Promote Campaign", activityTypePrefix,"/api/core/campaigns/"+campaignId+"/users/"+userId+"/promote", HTTPVerb.PATCH);
+		String message="";
+		
 		try {
 			logger.info("Calling Campaign Promote API...");
 
 			ValidationResult validationResult = campaignValidationStrategy.validateObject(campaignId);
 			if (!validationResult.isValid()) {
-				String message = validationResult.getMessage();
+				 message = validationResult.getMessage();
 				logger.error(message);
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+				auditService.logAudit(auditDTO,400,message);
+				return ResponseEntity.status(validationResult.getStatus()).body(APIResponse.error(message));
 			}
 			
 			validationResult= campaignValidationStrategy.validateUser(userId);
 			if (!validationResult.isValid()) {
-				String message = validationResult.getMessage();
+				 message = validationResult.getMessage();
 				logger.error(message);
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
+				auditService.logAudit(auditDTO,400,message);
+				return ResponseEntity.status(validationResult.getStatus()).body(APIResponse.error(message));
 			}
 			
 			CampaignDTO campaignDTO = campaignService.promote(campaignId,userId);
-			if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
+			if (campaignDTO != null && campaignDTO.getCampaignId()!=null) {
+				message ="Campaign promoted successfully.";
+				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK)
-						.body(APIResponse.success(campaignDTO, "Campaign promoted successfully"));
+						.body(APIResponse.success(campaignDTO, message));
 			} else {
-				String message = "Campaign Promotion has failed.";
+				message = "Campaign Promotion has failed.";
 				logger.error(message);
+				auditService.logAudit(auditDTO,500,message);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
-			logger.error("Calling Promote Campaign API failed", ex);
+			message ="An error occurred while processing Promote Campaign API.";
+			logger.error(message);
+			auditDTO.setRemarks(ex.toString());
+			auditService.logAudit(auditDTO,500,message);
+			logger.error("", ex);
 			throw ex;
 		}
 	}
