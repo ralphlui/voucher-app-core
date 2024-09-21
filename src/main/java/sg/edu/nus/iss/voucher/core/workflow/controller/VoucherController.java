@@ -81,13 +81,14 @@ public class VoucherController {
 	}
 
 	@PostMapping(value = "/claim", produces = "application/json")
-	public ResponseEntity<APIResponse<VoucherDTO>> claimVoucher(@RequestBody Voucher voucher) {
+	public ResponseEntity<APIResponse<VoucherDTO>> claimVoucher(@RequestBody VoucherRequest voucherRequest) {
 		try {
 			logger.info("Calling Voucher claim API...");
 
-			String campaignId = GeneralUtility.makeNotNull(voucher.getCampaign().getCampaignId()).trim();
+			String campaignId = GeneralUtility.makeNotNull(voucherRequest.getCampaignId()).trim();
+			String claimBy = voucherRequest.getClaimedBy();
 
-			String message = validateUser(voucher.getClaimedBy());
+			String message = validateUser(claimBy);
 			if (!message.isEmpty()) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(APIResponse.error(message));
 			}
@@ -96,7 +97,7 @@ public class VoucherController {
 			Campaign campaign = validateCampaign(campaignId);
 
 			//Check if Voucher Already Claimed
-			if (isVoucherAlreadyClaimed(voucher, campaign)) {
+			if (isVoucherAlreadyClaimed(claimBy, campaign)) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body(APIResponse.error("Voucher already claimed."));
 			}
@@ -108,7 +109,7 @@ public class VoucherController {
 			}
 
 			//Claim the Voucher
-			VoucherDTO voucherDTO = voucherService.claimVoucher(voucher);
+			VoucherDTO voucherDTO = voucherService.claimVoucher(voucherRequest);
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(APIResponse.success(voucherDTO, "Voucher claimed successfully."));
 
@@ -293,8 +294,8 @@ public class VoucherController {
 	}
 
 	// Check if the voucher has already been claimed by this user
-	private boolean isVoucherAlreadyClaimed(Voucher voucher, Campaign campaign) {
-		VoucherDTO voucherDTO = voucherService.findVoucherByCampaignIdAndUserId(campaign, voucher.getClaimedBy());
+	private boolean isVoucherAlreadyClaimed(String claimBy, Campaign campaign) {
+		VoucherDTO voucherDTO = voucherService.findVoucherByCampaignIdAndUserId(campaign, claimBy);
 		if (voucherDTO != null && voucherDTO.getVoucherId() != null && !voucherDTO.getVoucherId().isEmpty()) {
 			logger.error("Voucher already claimed.");
 			return true;

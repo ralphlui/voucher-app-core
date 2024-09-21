@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
+import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherRequest;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
@@ -110,11 +111,15 @@ public class VoucherControllerTest {
 
 		Mockito.when(campaignService.findById(campaign.getCampaignId())).thenReturn(Optional.of(campaign));
 
-		Mockito.when(voucherService.claimVoucher(Mockito.any(Voucher.class)))
+		Mockito.when(voucherService.claimVoucher(Mockito.any(VoucherRequest.class)))
 				.thenReturn(DTOMapper.toVoucherDTO(voucher1));
+		
+		VoucherRequest voucherRequest = new VoucherRequest();
+		voucherRequest.setCampaignId(voucher1.getCampaign().getCampaignId());
+		voucherRequest.setClaimedBy(voucher1.getClaimedBy());
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/core/vouchers/claim").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(voucher1))).andExpect(MockMvcResultMatchers.status().isOk())
+				.content(objectMapper.writeValueAsString(voucherRequest))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))	
 				.andExpect(jsonPath("$.message").value("Voucher claimed successfully.")).andDo(print());

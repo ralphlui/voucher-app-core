@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
+import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherRequest;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
@@ -91,12 +92,13 @@ public class VoucherService implements IVoucherService {
 	}
 
 	@Override
-	public VoucherDTO claimVoucher(Voucher voucher) throws Exception {
+	public VoucherDTO claimVoucher(VoucherRequest voucherRequest) throws Exception {
 		try {
 
-			Campaign campaign = campaignRepository.findById(voucher.getCampaign().getCampaignId()).orElseThrow();
+			Voucher voucher = new Voucher();
+			Campaign campaign = campaignRepository.findById(voucherRequest.getCampaignId()).orElseThrow();
 			voucher.setVoucherStatus(VoucherStatus.CLAIMED);
-			voucher.setClaimedBy(voucher.getClaimedBy());
+			voucher.setClaimedBy(voucherRequest.getClaimedBy());
 			voucher.setClaimTime(LocalDateTime.now());
 			voucher.setCampaign(campaign);
 			logger.info("Saving voucher...");
