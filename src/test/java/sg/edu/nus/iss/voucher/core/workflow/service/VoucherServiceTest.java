@@ -24,6 +24,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
+import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherRequest;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
@@ -81,10 +82,16 @@ public class VoucherServiceTest {
 
 	@Test
 	void claimVoucher() throws Exception {
+		VoucherRequest voucherRequest = new VoucherRequest();
+		
 		Mockito.when(voucherRepository.save(Mockito.any(Voucher.class))).thenReturn(voucher1);
 		Mockito.when(campaignRepository.findById(campaign.getCampaignId())).thenReturn(Optional.of(campaign));
+		
+		voucherRequest.setCampaignId(voucher1.getCampaign().getCampaignId());
+		voucherRequest.setClaimedBy(voucher1.getClaimedBy());
 		voucher1.setClaimTime(LocalDateTime.now());
-		VoucherDTO voucherDTO = voucherService.claimVoucher(voucher1);
+		
+		VoucherDTO voucherDTO = voucherService.claimVoucher(voucherRequest);
 		assertEquals(voucherDTO.getClaimedBy(), voucher1.getClaimedBy());
 		assertEquals(voucherDTO.getCampaign().getCampaignId(), voucher1.getCampaign().getCampaignId());
 	}
