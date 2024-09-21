@@ -100,7 +100,7 @@ public class CampaignControllerTest {
 
 		Mockito.when(campaignService.findAllActiveCampaigns("",pageable)).thenReturn(mockCampaignMap);
 
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns").param("page", "0").param("size", "10")
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns").header("X-User-Id", userId).param("page", "0").param("size", "10")
 				.contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andExpect(jsonPath("$.data[0].campaignId").value(1))
@@ -118,6 +118,7 @@ public class CampaignControllerTest {
         Mockito.when(campaignService.findAllActiveCampaigns(campaign1.getDescription(),pageable)).thenReturn(mockCampaignMap);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns")
+        		.header("X-User-Id", userId)
                 .param("page", "0").param("size", "10")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -136,7 +137,7 @@ public class CampaignControllerTest {
 		Mockito.when(campaignService.findAllCampaignsByStoreId(campaign1.getStore().getStoreId(),"", pageable))
 				.thenReturn(mockCampaignMap);
 		mockMvc.perform(
-				MockMvcRequestBuilders.get("/api/core/campaigns/stores/{storeId}", store.getStoreId()).param("page", "0").param("size", "10")
+				MockMvcRequestBuilders.get("/api/core/campaigns/stores/{storeId}", store.getStoreId()).header("X-User-Id", userId).param("page", "0").param("size", "10")
 						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -157,6 +158,7 @@ public class CampaignControllerTest {
         Mockito.when(campaignService.findAllCampaignsByUserId(userId,"", pageable)).thenReturn(mockCampaignMap);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/core/campaigns/users/{userId}", userId)
+        		.header("X-User-Id", userId)
                 .param("page", String.valueOf(page))
                 .param("size", String.valueOf(size))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -176,7 +178,7 @@ public class CampaignControllerTest {
 		
 		Mockito.when(campaignService.create(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/core/campaigns").contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(MockMvcRequestBuilders.post("/api/core/campaigns").header("X-User-Id", userId).contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(campaign1))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
@@ -193,7 +195,7 @@ public class CampaignControllerTest {
 		Mockito.when(authAPICall.validateActiveUser(userId)).thenReturn(mockResponse);
 		Mockito.when(campaignService.update(Mockito.any(Campaign.class))).thenReturn(DTOMapper.toCampaignDTO(campaign1));
 		
-		mockMvc.perform(MockMvcRequestBuilders.put("/api/core/campaigns/{id}",campaign1.getCampaignId())
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/core/campaigns/{id}",campaign1.getCampaignId()).header("X-User-Id", userId)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(campaign1)))
 				.andExpect(MockMvcResultMatchers.status().isOk())
@@ -216,7 +218,7 @@ public class CampaignControllerTest {
                 .thenReturn(DTOMapper.toCampaignDTO(campaign1));
         
         mockMvc.perform(MockMvcRequestBuilders
-                        .patch("/api/core/campaigns/{campaignId}/users/{userId}/promote", campaign1.getCampaignId(), userId)
+                        .patch("/api/core/campaigns/{campaignId}/users/{userId}/promote", campaign1.getCampaignId(), userId).header("X-User-Id", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)) 
@@ -231,7 +233,7 @@ public class CampaignControllerTest {
 		Mockito.when(campaignService.findByCampaignId(campaign1.getCampaignId()))
 				.thenReturn(DTOMapper.toCampaignDTO(campaign1));
 		mockMvc.perform(
-				MockMvcRequestBuilders.get("/api/core/campaigns/{id}",campaign1.getCampaignId())
+				MockMvcRequestBuilders.get("/api/core/campaigns/{id}",campaign1.getCampaignId()).header("X-User-Id", userId)
 						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))

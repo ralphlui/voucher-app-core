@@ -11,6 +11,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 
 @Configuration
 public class AWSConfig {
@@ -83,5 +85,13 @@ public class AWSConfig {
 				.withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).withRegion(awsRegion).build();
 		return amazonS3Client;
 	}
+	
+	@Bean
+    public AmazonSQS amazonSQSClient(AWSCredentials awsCredentials) {
+        return AmazonSQSClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .withRegion(awsRegion)
+                .build();
+    }
 
 }
