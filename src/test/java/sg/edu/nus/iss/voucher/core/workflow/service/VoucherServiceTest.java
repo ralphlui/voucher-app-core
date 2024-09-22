@@ -112,9 +112,9 @@ public class VoucherServiceTest {
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Voucher> mockVoucherPage = new PageImpl<>(mockVouchers, pageable, mockVouchers.size());
 
-		Mockito.when(voucherRepository.findByClaimedBy("U1", pageable))
+		Mockito.when(voucherRepository.findByClaimedByAndVoucherStatus("U1", VoucherStatus.CLAIMED,pageable))
 				.thenReturn(mockVoucherPage);
-		Map<Long, List<VoucherDTO>> voucherPage = voucherService.findByClaimedBy("U1",
+		Map<Long, List<VoucherDTO>> voucherPage = voucherService.findByClaimedByAndVoucherStatus("U1",VoucherStatus.CLAIMED,
 				pageable);
 
 		for (Map.Entry<Long, List<VoucherDTO>> entry : voucherPage.entrySet()) {

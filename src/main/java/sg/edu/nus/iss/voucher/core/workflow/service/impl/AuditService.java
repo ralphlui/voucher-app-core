@@ -80,7 +80,7 @@ public class AuditService implements IAuditService {
 	
 	public void logAudit(AuditDTO auditDTO,int stausCode, String message) {
 	    logger.error(message);
-	    auditDTO.setStatusCode(404);
+	    auditDTO.setStatusCode(stausCode);
 	    if (stausCode ==200) {
 	    	  auditDTO.setResponseStatus(AuditResponseStatus.SUCCESS);
 	  

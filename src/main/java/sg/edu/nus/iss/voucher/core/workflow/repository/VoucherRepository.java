@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
+import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 
 @Repository
 public interface VoucherRepository extends JpaRepository<Voucher, String> {
@@ -19,7 +20,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, String> {
 
 	List<Voucher> findByCampaignCampaignId(String campaignId);
 	
-	Page<Voucher> findByClaimedBy(String claimedBy, Pageable pageable);
+	Page<Voucher> findByClaimedByAndVoucherStatus(String claimedBy, VoucherStatus voucherStatus,Pageable pageable);
 
 	Page<Voucher> findByCampaignCampaignId(String campaignId, Pageable pageable);
 
