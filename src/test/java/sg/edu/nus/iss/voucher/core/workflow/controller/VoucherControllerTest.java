@@ -136,7 +136,7 @@ public class VoucherControllerTest {
 
 		Mockito.when(voucherService.findByClaimedByAndVoucherStatus("U1",VoucherStatus.CLAIMED, pageable))
 				.thenReturn(mockVoucherMap);
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/vouchers/users/{userId}","U1").header("X-User-Id", "U1").param("page", "0").param("size", "10")
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/vouchers/users/{userId}","U1").header("X-User-Id", "U1").param("status", "CLAIMED").param("size", "10")
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -153,7 +153,7 @@ public class VoucherControllerTest {
 		Mockito.when(voucherService.findAllClaimedVouchersByCampaignId(campaign.getCampaignId(), pageable))
 				.thenReturn(mockVoucherMap);
 		mockMvc.perform(
-				MockMvcRequestBuilders.get("/api/core/vouchers/campaigns/{campaignId}",campaign.getCampaignId()).header("X-User-Id", userId).param("page", "0").param("size", "10")
+				MockMvcRequestBuilders.get("/api/core/vouchers/campaigns/{campaignId}",campaign.getCampaignId()).header("X-User-Id", userId).param("query", "").param("page", "0").param("size", "10")
 						.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
