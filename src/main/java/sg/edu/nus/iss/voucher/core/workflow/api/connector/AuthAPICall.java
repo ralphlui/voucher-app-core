@@ -43,6 +43,7 @@ public class AuthAPICall {
 	                .build();
 	        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
 	        HttpGet request = new HttpGet(url);
+	        request.setHeader("X-User-Id", userId);
 	        CloseableHttpResponse httpResponse = httpClient.execute(request);
 	        try {
 	            byte[] responseByteArray = EntityUtils.toByteArray(httpResponse.getEntity());
