@@ -38,8 +38,10 @@ public interface CampaignRepository extends JpaRepository<Campaign, String> {
     @Query("SELECT c FROM Campaign c WHERE c.campaignStatus IN ?1 AND c.description LIKE %?2%")
     Page<Campaign> findByCampaignStatusInAndDescriptionLike(List<CampaignStatus> statuses,String description,Pageable pageable);
     
+    @Query("SELECT c FROM Campaign c WHERE c.createdBy = ?1 AND c.description LIKE %?2%")
     Page<Campaign> findByCreatedByAndDescriptionLike(String userId,String description,Pageable pageable);
     
+    @Query("SELECT c FROM Campaign c WHERE c.store.storeId = ?1 AND c.description LIKE %?2%")
     Page<Campaign> findByStoreStoreIdAndDescriptionLike(String storeId,String description,Pageable pageable);
     
     @Transactional
