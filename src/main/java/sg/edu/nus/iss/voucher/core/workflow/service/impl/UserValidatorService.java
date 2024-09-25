@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import sg.edu.nus.iss.voucher.core.workflow.api.connector.AuthAPICall;
-import sg.edu.nus.iss.voucher.core.workflow.dto.AuditDTO;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
 import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 

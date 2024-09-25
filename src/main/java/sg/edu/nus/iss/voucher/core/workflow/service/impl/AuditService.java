@@ -46,7 +46,7 @@ public class AuditService implements IAuditService {
 					JSONObject data = jsonReader.getDataFromResponse(jsonResponse);
 
 					if (data != null && !GeneralUtility.makeNotNull(data).isEmpty()) {
-						String userName = GeneralUtility.makeNotNull(data.get("userName"));
+						String userName = GeneralUtility.makeNotNull(data.get("username"));
 						if (!userName.equals("")) {
 							autAuditDTO.setUsername(userName);
 						}
@@ -56,7 +56,7 @@ public class AuditService implements IAuditService {
 			}
 
 			if (autAuditDTO.getUsername().equals("")) {
-				autAuditDTO.setUsername("Invalid UserName");
+				autAuditDTO.setUsername("Invalid Username");
 			}
 			
 			sqsPublishingService.sendMessage(autAuditDTO);
