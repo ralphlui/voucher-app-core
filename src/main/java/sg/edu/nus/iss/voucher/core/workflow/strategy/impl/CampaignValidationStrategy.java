@@ -140,7 +140,7 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			LocalDateTime startDate = dbCampaign.get().getStartDate();
 			LocalDateTime endDate = dbCampaign.get().getEndDate();
 
-			if (startDate.isBefore(LocalDateTime.now()) && endDate.isBefore(LocalDateTime.now())) {
+			if (startDate.isBefore(LocalDateTime.now())) {
 				validationResult.setMessage("StartDate " + startDate + " should not be less than current date ");
 				validationResult.setStatus(HttpStatus.BAD_REQUEST);
 				validationResult.setValid(false);

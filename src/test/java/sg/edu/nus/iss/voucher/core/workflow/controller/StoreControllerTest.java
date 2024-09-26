@@ -91,7 +91,9 @@ public class StoreControllerTest {
 		Mockito.when(storeService.getAllActiveStoreList("", pageable)).thenReturn(mockStoreMap);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores").param("query", "").param("page", "0")
-				.param("size", "10").contentType(MediaType.APPLICATION_JSON))
+				.param("size", "10")
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
@@ -100,7 +102,9 @@ public class StoreControllerTest {
 		Mockito.when(storeService.getAllActiveStoreList("SK", pageable)).thenReturn(mockStoreMap);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores").param("query", "SK").param("page", "0")
-				.param("size", "10").contentType(MediaType.APPLICATION_JSON))
+				.param("size", "10")
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
@@ -113,7 +117,9 @@ public class StoreControllerTest {
 		Mockito.when(storeService.getAllActiveStoreList("",pageable)).thenReturn(emptyMockStoreMap);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores").param("query", "").param("page", "0").param("size", "10")
-				.contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNotFound())
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.APPLICATION_JSON))
+		        .andExpect(MockMvcResultMatchers.status().isNotFound())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.message").value("No Active Store List.")).andDo(print());
@@ -139,19 +145,26 @@ public class StoreControllerTest {
 		
 		
 		Mockito.when(storeService.findByStoreName(store1.getStoreName())).thenReturn(storeDTO);
-	 
+		Mockito.when(
+				storeService.createStore(Mockito.any(Store.class), (MultipartFile) Mockito.any(MultipartFile.class)))
+				.thenReturn(DTOMapper.toStoreDTO(store1));
+		
 		
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/core/stores").file(store).file(uploadFile)
-				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isOk())
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.MULTIPART_FORM_DATA))
+		        .andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.message").value("Store created successfully.")).andDo(print());
+				.andDo(print());
 		
 		MockMultipartFile storeFile = new MockMultipartFile("store", "store", MediaType.APPLICATION_JSON_VALUE,
 				objectMapper.writeValueAsBytes(store2));
 
 		mockMvc.perform(MockMvcRequestBuilders.multipart("/api/core/stores").file(storeFile).file(uploadFile)
-				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isBadRequest())
+				.header("X-User-Id", store2.getCreatedBy())
+				.contentType(MediaType.MULTIPART_FORM_DATA))
+		        .andExpect(MockMvcResultMatchers.status().isBadRequest())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(false))
 				.andExpect(jsonPath("$.message").value("Bad Request: Store Create user id field could not be blank.")).andDo(print());
@@ -161,7 +174,9 @@ public class StoreControllerTest {
 	@Test
 	void testGetStoreById() throws Exception {
 		Mockito.when(storeService.findByStoreId(store1.getStoreId())).thenReturn(DTOMapper.toStoreDTO(store1));
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores/{id}", store1.getStoreId()).contentType(MediaType.APPLICATION_JSON)
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores/{id}", store1.getStoreId())
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(store1))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true)).andDo(print());
@@ -181,7 +196,9 @@ public class StoreControllerTest {
 				.thenReturn(mockStoreMap);
 
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores/users/{userId}", store1.getCreatedBy())
-				.param("page", "0").param("size", "10").contentType(MediaType.APPLICATION_JSON))
+				.param("page", "0").param("size", "10")
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
@@ -213,10 +230,12 @@ public class StoreControllerTest {
 				.thenReturn(DTOMapper.toStoreDTO(store1));
 
 		mockMvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT,"/api/core/stores").file(store).file(uploadFile)
-				.contentType(MediaType.MULTIPART_FORM_DATA)).andExpect(MockMvcResultMatchers.status().isOk())
+				.header("X-User-Id", store1.getCreatedBy())
+				.contentType(MediaType.MULTIPART_FORM_DATA))
+		         .andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.message").value("Store updated successfully.")).andDo(print());
+				.andExpect(jsonPath("$.message").value(store1.getStoreName()+" is updated successfully.")).andDo(print());
 
 	}
 

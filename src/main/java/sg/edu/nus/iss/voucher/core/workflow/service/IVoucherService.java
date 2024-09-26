@@ -9,6 +9,7 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherRequest;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
+import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 
 public interface IVoucherService {
 
@@ -21,7 +22,7 @@ public interface IVoucherService {
 	 
 	 VoucherDTO claimVoucher(VoucherRequest voucherRequest) throws Exception;
 	 
-	 Map<Long, List<VoucherDTO>> findByClaimedBy(String claimedBy,Pageable pageable);
+	 Map<Long, List<VoucherDTO>> findByClaimedByAndVoucherStatus(String claimedBy,VoucherStatus voucherStatus,Pageable pageable);
 
 	 Map<Long, List<VoucherDTO>> findAllClaimedVouchersByCampaignId(String campaignId,Pageable pageable);
 	 
