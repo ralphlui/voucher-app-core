@@ -49,6 +49,11 @@ spec:
                 configMapKeyRef:
                   name: my-configmap
                   key: AUTH_URL
+            - name: AUDIT_SQS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: my-configmap
+                  key: AUDIT_SQS_URL
 
 ---
 apiVersion: v1
