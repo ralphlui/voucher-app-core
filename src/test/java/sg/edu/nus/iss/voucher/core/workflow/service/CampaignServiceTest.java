@@ -1,4 +1,5 @@
 package sg.edu.nus.iss.voucher.core.workflow.service;
+
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -24,10 +25,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
-import sg.edu.nus.iss.voucher.core.workflow.aws.service.SNSPublishingService;
 import sg.edu.nus.iss.voucher.core.workflow.dto.CampaignDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
+import sg.edu.nus.iss.voucher.core.workflow.rabbitmq.service.NotificationPublishingService;
 import sg.edu.nus.iss.voucher.core.workflow.repository.*;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.*;
 
@@ -45,9 +46,9 @@ public class CampaignServiceTest {
 
 	@Autowired
 	private CampaignService campaignService;
-	
+
 	@MockBean
-	private SNSPublishingService messagePublishService;
+	private NotificationPublishingService notificationPublishingService;
 
 
 	private static List<Campaign> mockCampaigns = new ArrayList<>();

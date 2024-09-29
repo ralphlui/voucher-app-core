@@ -13,16 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import com.amazonaws.services.sns.model.PublishRequest;
-
-import sg.edu.nus.iss.voucher.core.workflow.aws.service.SNSPublishingService;
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
 import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
+import sg.edu.nus.iss.voucher.core.workflow.rabbitmq.service.NotificationPublishingService;
 import sg.edu.nus.iss.voucher.core.workflow.repository.*;
 import sg.edu.nus.iss.voucher.core.workflow.service.ICampaignService;
 import sg.edu.nus.iss.voucher.core.workflow.utility.*;
@@ -43,7 +39,7 @@ public class CampaignService implements ICampaignService {
 	private VoucherRepository voucherRepository;
 
 	@Autowired
-	private SNSPublishingService messagePublishService;
+	private NotificationPublishingService notificationPublishingService;
 
 	@Override
 	public Map<Long, List<CampaignDTO>> findAllActiveCampaigns(String description,Pageable pageable) {
@@ -243,7 +239,7 @@ public class CampaignService implements ICampaignService {
 						logger.info("Promotted successfully...");
 						campaignDTO = DTOMapper.toCampaignDTO(promottedCampaign);
 						
-						messagePublishService.sendNotification(promottedCampaign);
+						notificationPublishingService.publishMessage(promottedCampaign);
 						logger.info("Feed generated successfully...");
 					} else {
 						logger.info(
