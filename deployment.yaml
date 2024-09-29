@@ -44,6 +44,11 @@ spec:
                 configMapKeyRef:
                   name: my-configmap
                   key: SPRING_PROFILES_ACTIVE
+            - name: AES_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: my-secret
+                  key: aes_secret
             - name: FRONTEND_URL
               valueFrom:
                 configMapKeyRef:
@@ -57,10 +62,10 @@ spec:
           resources:
            requests:
              cpu: "50m"
-             memory: "200Mi"
+             memory: "250Mi"
            limits:
-             cpu: "200m"
-             memory: "350Mi"
+             cpu: "350m"
+             memory: "500Mi"
 
 ---
 apiVersion: v1
