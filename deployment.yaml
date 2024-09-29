@@ -49,11 +49,11 @@ spec:
                 secretKeyRef:
                   name: my-secret
                   key: aes_secret
-            - name: FRONTEND_URL
+            - name: AUTH_URL
               valueFrom:
                 configMapKeyRef:
                   name: my-configmap
-                  key: FRONTEND_URL
+                  key: AUTH_URL
             - name: AUDIT_SQS_URL
               valueFrom:
                 configMapKeyRef:
