@@ -114,7 +114,7 @@ public class VoucherServiceTest {
 
 		Mockito.when(voucherRepository.findByClaimedByAndVoucherStatus("U1", VoucherStatus.CLAIMED,pageable))
 				.thenReturn(mockVoucherPage);
-		Map<Long, List<VoucherDTO>> voucherPage = voucherService.findByClaimedByAndVoucherStatus("U1",VoucherStatus.CLAIMED,
+		Map<Long, List<VoucherDTO>> voucherPage = voucherService.findByClaimedByAndVoucherStatus("U1",VoucherStatus.CLAIMED.toString(),
 				pageable);
 
 		for (Map.Entry<Long, List<VoucherDTO>> entry : voucherPage.entrySet()) {

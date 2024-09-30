@@ -175,9 +175,7 @@ public class VoucherController {
 			if (!userId.equals("")) {
 
 				Pageable pageable = PageRequest.of(page, size, Sort.by("claimTime").ascending());
-
-				VoucherStatus voucherStatus = VoucherStatus.valueOf(status);
-				Map<Long, List<VoucherDTO>> resultMap = voucherService.findByClaimedByAndVoucherStatus(userId,voucherStatus, pageable);
+				Map<Long, List<VoucherDTO>> resultMap = voucherService.findByClaimedByAndVoucherStatus(userId,status, pageable);
 
 				if (resultMap.size() == 0) {
 					 message = "Voucher not found by user: " + userId;

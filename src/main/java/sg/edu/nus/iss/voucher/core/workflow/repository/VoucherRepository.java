@@ -23,5 +23,7 @@ public interface VoucherRepository extends JpaRepository<Voucher, String> {
 	Page<Voucher> findByClaimedByAndVoucherStatus(String claimedBy, VoucherStatus voucherStatus,Pageable pageable);
 
 	Page<Voucher> findByCampaignCampaignId(String campaignId, Pageable pageable);
+	
+	Page<Voucher> findByClaimedBy(String claimedBy, Pageable pageable);
 
 }
