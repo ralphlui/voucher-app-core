@@ -134,7 +134,7 @@ public class VoucherControllerTest {
 		Map<Long, List<VoucherDTO>> mockVoucherMap = new HashMap<>();
 		mockVoucherMap.put(0L, mockVouchers);
 
-		Mockito.when(voucherService.findByClaimedByAndVoucherStatus("U1",VoucherStatus.CLAIMED, pageable))
+		Mockito.when(voucherService.findByClaimedByAndVoucherStatus("U1",VoucherStatus.CLAIMED.toString(), pageable))
 				.thenReturn(mockVoucherMap);
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/vouchers/users/{userId}","U1").header("X-User-Id", "U1").param("status", "CLAIMED").param("size", "10")
 				.contentType(MediaType.APPLICATION_JSON))

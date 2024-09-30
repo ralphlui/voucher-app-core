@@ -123,13 +123,13 @@ public class VoucherService implements IVoucherService {
 	}
 
 	@Override
-	public Map<Long, List<VoucherDTO>> findByClaimedByAndVoucherStatus(String userId,VoucherStatus voucherStatus, Pageable pageable) {
+	public Map<Long, List<VoucherDTO>> findByClaimedByAndVoucherStatus(String userId,String status, Pageable pageable) {
 		logger.info("Getting all claimed voucher for user {}...", userId);
 		Map<Long, List<VoucherDTO>> result = new HashMap<>();
 
 		try {
-
-			Page<Voucher> voucherPages = voucherRepository.findByClaimedByAndVoucherStatus(userId, voucherStatus,pageable);
+			VoucherStatus voucherStatus = !status.isEmpty() ? VoucherStatus.valueOf(status): null;
+			Page<Voucher> voucherPages = voucherStatus != null ? voucherRepository.findByClaimedByAndVoucherStatus(userId, voucherStatus,pageable) : voucherRepository.findByClaimedBy(userId,pageable);
 			long totalRecord = voucherPages.getTotalElements();
 			List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
 			if (totalRecord > 0) {

@@ -22,7 +22,7 @@ public interface IVoucherService {
 	 
 	 VoucherDTO claimVoucher(VoucherRequest voucherRequest) throws Exception;
 	 
-	 Map<Long, List<VoucherDTO>> findByClaimedByAndVoucherStatus(String claimedBy,VoucherStatus voucherStatus,Pageable pageable);
+	 Map<Long, List<VoucherDTO>> findByClaimedByAndVoucherStatus(String claimedBy,String status,Pageable pageable);
 
 	 Map<Long, List<VoucherDTO>> findAllClaimedVouchersByCampaignId(String campaignId,Pageable pageable);
 	 
