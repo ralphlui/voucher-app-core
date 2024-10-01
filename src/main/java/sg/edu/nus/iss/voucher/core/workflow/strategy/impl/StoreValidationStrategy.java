@@ -32,7 +32,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 		String userId = GeneralUtility.makeNotNull(store.getCreatedBy());
 
 		if (userId.isEmpty()) {
-			validationResult.setMessage("Bad Request: Store Create user id field could not be blank.");
+			validationResult.setMessage("Bad Request: User id field could not be blank.");
 			validationResult.setValid(false);
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
 			return validationResult;
@@ -119,7 +119,7 @@ public class StoreValidationStrategy implements IAPIHelperValidationStrategy<Sto
 		// Check for updated by user
 		String userId = GeneralUtility.makeNotNull(store.getUpdatedBy());
 		if (userId.isEmpty()) {
-			validationResult.setMessage("Bad Request: Store Update user field could not be blank.");
+			validationResult.setMessage("Bad Request: User ID field could not be blank.");
 			validationResult.setStatus(HttpStatus.BAD_REQUEST);
 			validationResult.setValid(false);
 			return validationResult;

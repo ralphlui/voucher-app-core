@@ -82,13 +82,13 @@ public class StoreController {
 			String message = "";
 
 			if (storeDTOList.size() > 0) {
-				message = query.isEmpty() ? "Successfully get all active store."
-						: "Successfully retrieved searched stores.";
+				message = query.isEmpty() ? "Successfully retrieved all active stores."
+						: "Successfully retrieved the stores matching the search criteria.";
 				return handleResponseListAndSendAuditLogForSuccessCase(userId, activityType, endpoint, httpMethod,
 						message, storeDTOList, totalRecord);
 
 			} else {
-				message = query.isEmpty() ? "No Active Store List." : "No stores found matching the keyword " + query;
+				message = query.isEmpty() ? "No Active Store List." : "No stores found matching the search criteria " + query;
 				;
 				return handleEmptyResponseListAndSendAuditLogForSuccessCase(userId, activityType, endpoint, httpMethod,
 						message, storeDTOList, totalRecord);
@@ -217,7 +217,7 @@ public class StoreController {
 			List<StoreDTO> storeDTOList = firstEntry.getValue();
 
 			if (storeDTOList.size() > 0) {
-				message = "Successfully get all active store by user.";
+				message = "Successfully retrieved all active stores for the specified user.";
 				return handleResponseListAndSendAuditLogForSuccessCase(userId, activityType, endpoint, httpMethod,
 						message, storeDTOList, totalRecord);
 			} else {
@@ -298,7 +298,7 @@ public class StoreController {
 			String userId, String activityType, String endpoint, HTTPVerb httpVerb, String message,
 			List<StoreDTO> storeDTOList, long totalRecord) {
 		logger.info(message);
-		int httpStatusCode = HttpStatus.NOT_FOUND.value();
+		int httpStatusCode = HttpStatus.OK.value();
 		AuditDTO auditDTO = auditService.createAuditDTO(userId, activityType, activityTypePrefix, endpoint, httpVerb);
 		auditService.logAudit(auditDTO, httpStatusCode, message);
 		return ResponseEntity.status(httpStatusCode).body(APIResponse.noList(storeDTOList, message));
