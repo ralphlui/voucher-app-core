@@ -9,7 +9,6 @@ import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherDTO;
 import sg.edu.nus.iss.voucher.core.workflow.dto.VoucherRequest;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Campaign;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Voucher;
-import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
 
 public interface IVoucherService {
 

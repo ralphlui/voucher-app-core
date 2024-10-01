@@ -107,7 +107,6 @@ public class VoucherServiceTest {
 	
 	@Test
 	void findAllClaimedVouchersClaimedBy() {
-		long totalRecord = 0;
 		List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Voucher> mockVoucherPage = new PageImpl<>(mockVouchers, pageable, mockVouchers.size());
@@ -118,7 +117,6 @@ public class VoucherServiceTest {
 				pageable);
 
 		for (Map.Entry<Long, List<VoucherDTO>> entry : voucherPage.entrySet()) {
-			totalRecord = entry.getKey();
 			voucherDTOList = entry.getValue();
 
 		}

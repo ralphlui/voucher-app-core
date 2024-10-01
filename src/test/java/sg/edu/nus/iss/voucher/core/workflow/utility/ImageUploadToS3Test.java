@@ -17,7 +17,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectResult;
 
 import sg.edu.nus.iss.voucher.core.workflow.configuration.AWSConfig;
-import sg.edu.nus.iss.voucher.core.workflow.configuration.VoucherCoreSecurityConfig;
 
 import java.io.IOException;
 

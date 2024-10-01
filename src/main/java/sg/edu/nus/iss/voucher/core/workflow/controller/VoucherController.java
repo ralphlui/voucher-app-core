@@ -83,13 +83,13 @@ public class VoucherController {
 				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(voucherDTO, message));
 			}
-			message = "Voucher not found by specified voucherId: " + voucherId;
+			message = "The voucher could not be located using the specified voucher ID: " + voucherId;
 			logger.error(message);
 			auditService.logAudit(auditDTO,404,message);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 
 		} catch (Exception ex) {
-			message ="Failed to retrieve voucherId " + voucherId;
+			message ="The attempt to retrieve the voucher ID " + voucherId +" was unsuccessful.";
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,404,message);
@@ -199,7 +199,7 @@ public class VoucherController {
 			}
 		} catch (Exception ex) {
 			logger.error("Calling Voucher get Voucher by email API failed...");
-			message ="Failed to get voucher for user " + userId;
+			message =" Unable to retrieve the voucher for the specified user ID: " + userId;
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,400,message);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
