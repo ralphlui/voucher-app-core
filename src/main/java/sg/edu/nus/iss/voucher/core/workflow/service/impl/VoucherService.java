@@ -48,7 +48,7 @@ public class VoucherService implements IVoucherService {
 			
 			if (voucher == null) {
 				logger.error("Voucher not found...");
-				throw new VoucherNotFoundException("Voucher not found by voucherId: " + voucherId);
+				throw new VoucherNotFoundException("The voucher with the specified ID "+ voucherId+ "could not be found in the system.");
 			}
 			
 			logger.info("Voucher found...");
@@ -107,7 +107,7 @@ public class VoucherService implements IVoucherService {
 
 			if (savedVoucher == null) {
 				logger.error("Voucher claim failed....");
-				throw new Exception("Voucher claim failed.");
+				throw new Exception("The attempt to claim the voucher has been unsuccessful.");
 			}
 
 			VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(savedVoucher);
@@ -117,7 +117,7 @@ public class VoucherService implements IVoucherService {
 
 			return voucherDTO;
 		} catch (Exception ex) {
-			logger.error("Voucher saving exception... {}", ex.toString());
+			logger.error("Voucher saving exception... {}"+ ex.toString());
 			throw ex;
 		}
 	}
@@ -125,13 +125,14 @@ public class VoucherService implements IVoucherService {
 	@Override
 	public Map<Long, List<VoucherDTO>> findByClaimedByAndVoucherStatus(String userId,String status, Pageable pageable) {
 		logger.info("Getting all claimed voucher for user {}...", userId);
-		Map<Long, List<VoucherDTO>> result = new HashMap<>();
 
 		try {
 			VoucherStatus voucherStatus = !status.isEmpty() ? VoucherStatus.valueOf(status): null;
 			Page<Voucher> voucherPages = voucherStatus != null ? voucherRepository.findByClaimedByAndVoucherStatus(userId, voucherStatus,pageable) : voucherRepository.findByClaimedBy(userId,pageable);
+			
 			long totalRecord = voucherPages.getTotalElements();
 			List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
+			
 			if (totalRecord > 0) {
 				for (Voucher voucher : voucherPages) {
 					VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(voucher);
@@ -142,32 +143,39 @@ public class VoucherService implements IVoucherService {
 
 				}
 			}
+			Map<Long, List<VoucherDTO>> result = new HashMap<>();
 			result.put(totalRecord, voucherDTOList);
+			return result;
 
 		} catch (Exception ex) {
-			logger.error(ex.toString());
+			logger.error("Retrieiving voucher by user exception " +ex.toString());
+			throw ex;
 		}
-		return result;
 	}
 
 	@Override
 	public Map<Long, List<VoucherDTO>> findAllClaimedVouchersByCampaignId(String campaignId, Pageable pageable) {
 		logger.info("Getting all claimed voucher for campaign id {}...", campaignId);
-		Map<Long, List<VoucherDTO>> result = new HashMap<>();
+		try {
+			Page<Voucher> voucherPages = voucherRepository.findByCampaignCampaignId(campaignId, pageable);
+			long totalRecord = voucherPages.getTotalElements();
+			List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
+			if (totalRecord > 0) {
 
-		Page<Voucher> voucherPages = voucherRepository.findByCampaignCampaignId(campaignId, pageable);
-		long totalRecord = voucherPages.getTotalElements();
-		List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
-		if (totalRecord > 0) {
-
-			for (Voucher voucher : voucherPages) {
-				VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(voucher);
-				voucherDTO.getCampaign().setNumberOfClaimedVouchers((int) totalRecord);
-				voucherDTOList.add(voucherDTO);
+				for (Voucher voucher : voucherPages) {
+					VoucherDTO voucherDTO = DTOMapper.toVoucherDTO(voucher);
+					voucherDTO.getCampaign().setNumberOfClaimedVouchers((int) totalRecord);
+					voucherDTOList.add(voucherDTO);
+				}
 			}
+			
+			Map<Long, List<VoucherDTO>> result = new HashMap<>();
+			result.put(totalRecord, voucherDTOList);
+			return result;
+		} catch (Exception ex) {
+			logger.error("Retrieiving voucher by campaign id exception " + ex.toString());
+			throw ex;
 		}
-		result.put(totalRecord, voucherDTOList);
-		return result;
 	}
 
 	@Override
@@ -178,7 +186,7 @@ public class VoucherService implements IVoucherService {
 			Voucher dbVoucher = voucherRepository.findById(voucherId).orElseThrow();
 			if (dbVoucher == null) {
 				logger.info("Voucher Id {} is not found.", voucherId);
-				throw new VoucherNotFoundException("Voucher not found. Id: " + voucherId);
+				throw new VoucherNotFoundException("The voucher with the specified ID "+ voucherId+ "could not be found in the system.");
 			}
 			dbVoucher.setConsumedTime(LocalDateTime.now());
 			dbVoucher.setVoucherStatus(VoucherStatus.CONSUMED);

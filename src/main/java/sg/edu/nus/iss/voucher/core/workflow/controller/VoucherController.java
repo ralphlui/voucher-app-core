@@ -1,6 +1,5 @@
 package sg.edu.nus.iss.voucher.core.workflow.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import sg.edu.nus.iss.voucher.core.workflow.dto.*;
 import sg.edu.nus.iss.voucher.core.workflow.entity.*;
-import sg.edu.nus.iss.voucher.core.workflow.enums.CampaignStatus;
 import sg.edu.nus.iss.voucher.core.workflow.enums.HTTPVerb;
 import sg.edu.nus.iss.voucher.core.workflow.enums.UserRoleType;
 import sg.edu.nus.iss.voucher.core.workflow.enums.VoucherStatus;
@@ -80,18 +78,18 @@ public class VoucherController {
 			
 			if (voucherDTO.getVoucherId().equals(voucherId)) {
 
-				message = "Successfully get voucherId " + voucherId;
+				message = "Successfully retrieved the voucher associated with the specified ID: " + voucherId;
 				logger.info(message);
 				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(voucherDTO, message));
 			}
-			message = "Voucher not found by voucherId: " + voucherId;
+			message = "Voucher not found by specified voucherId: " + voucherId;
 			logger.error(message);
 			auditService.logAudit(auditDTO,404,message);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 
 		} catch (Exception ex) {
-			message ="Failed to get voucherId " + voucherId;
+			message ="Failed to retrieve voucherId " + voucherId;
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,404,message);
@@ -123,7 +121,7 @@ public class VoucherController {
 
 			//Check if Voucher Already Claimed
 			if (isVoucherAlreadyClaimed(claimBy, campaign)) {
-				message = "Voucher already claimed.";
+				message = "Voucher has already been claimed.";
 				auditService.logAudit(auditDTO,400,message);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body(APIResponse.error(message));
@@ -131,7 +129,7 @@ public class VoucherController {
 
 			//Check if Campaign is Fully Claimed
 			if (isCampaignFullyClaimed(campaignId, campaign)) {
-				message="Campaign is fully claimed.";
+				message="Campaign has been fully claimed.";
 				auditService.logAudit(auditDTO,401,message);
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body(APIResponse.error(message));
@@ -139,20 +137,20 @@ public class VoucherController {
 
 			//Claim the Voucher
 			VoucherDTO voucherDTO = voucherService.claimVoucher(voucherRequest);
-			message = "Voucher claimed successfully.";
+			message = "Voucher has been successfully claimed.";
 			auditService.logAudit(auditDTO,200,message);
 			return ResponseEntity.status(HttpStatus.OK)
 					.body(APIResponse.success(voucherDTO, message));
 
 		} catch (CampaignNotFoundException ex) {
-			message = "Campaign Not Found.";
+			message = "Campaign not Found.";
 			logger.error(ex.getMessage());
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,404,message);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(ex.getMessage()));
 		} catch (Exception ex) {
 			logger.error("Calling Voucher claim API failed: " + ex.getMessage(), ex);
-			message = "Voucher claim failed.";
+			message = "The attempt to claim the voucher has been unsuccessful.";
 			
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,404,message);
@@ -164,7 +162,6 @@ public class VoucherController {
 	public ResponseEntity<APIResponse<List<VoucherDTO>>> findAllClaimedVouchersByUserId(@RequestHeader("X-User-Id") String XUserId,@PathVariable("userId") String userId,@RequestParam(defaultValue = "") String status,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
 
-		long totalRecord = 0;
 		
 		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Claimed Voucher List by User", activityTypePrefix,"/api/core/vouchers/users/"+userId, HTTPVerb.GET);
         String message="";
@@ -176,40 +173,25 @@ public class VoucherController {
 
 				Pageable pageable = PageRequest.of(page, size, Sort.by("claimTime").ascending());
 				Map<Long, List<VoucherDTO>> resultMap = voucherService.findByClaimedByAndVoucherStatus(userId,status, pageable);
-
-				if (resultMap.size() == 0) {
-					 message = "Voucher not found by user: " + userId;
-					logger.error(message);
-					auditService.logAudit(auditDTO,404,message);
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
-				}
-
-				List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
-
-				for (Map.Entry<Long, List<VoucherDTO>> entry : resultMap.entrySet()) {
-					totalRecord = entry.getKey();
-					voucherDTOList = entry.getValue();
-
-					logger.info("totalRecord: " + totalRecord);
-					logger.info("voucherDTO List: " + voucherDTOList);
-
-				}
+				
+				
+				Map.Entry<Long, List<VoucherDTO>> firstEntry = resultMap.entrySet().iterator().next();
+				long totalRecord = firstEntry.getKey();
+				List<VoucherDTO> voucherDTOList = firstEntry.getValue();
 
 				if (voucherDTOList.size() > 0) {
-					message ="Successfully get claimed vouchers by user: " + userId;
+					message = "Successfully retrieved all vouchers for the specified user.";
 					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(voucherDTOList,
 							message, totalRecord));
-
 				} else {
-					 message = "Voucher not found by user: " + userId;
-					logger.error(message);
-					auditService.logAudit(auditDTO,404,message);
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
+					message = "No Voucher list for the specified user: "+ userId;
+					auditService.logAudit(auditDTO,200,message);
+					return  ResponseEntity.status(HttpStatus.OK).body(APIResponse.noList(voucherDTOList, message));
 				}
 
 			} else {
-				message="Bad Request:Email could not be blank.";
+				message="Bad Request: User id could not be blank.";
 				logger.error(message);
 				auditService.logAudit(auditDTO,400,message);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -225,17 +207,16 @@ public class VoucherController {
 		}
 
 	}
-	
-	@GetMapping(value = "/campaigns/{campaignId}", produces = "application/json")
-	public ResponseEntity<APIResponse<List<VoucherDTO>>> findAllClaimedVouchersBycampaignId(@RequestHeader("X-User-Id") String userId,
-			@PathVariable("campaignId") String campaignId, @RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "50") int size) {
 
-		long totalRecord = 0;
-		
-		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Claimed Voucher List by Campaign", activityTypePrefix,"/api/core/vouchers/campaigns/"+campaignId, HTTPVerb.GET);
-        String message="";
-        
+	@GetMapping(value = "/campaigns/{campaignId}", produces = "application/json")
+	public ResponseEntity<APIResponse<List<VoucherDTO>>> findAllClaimedVouchersBycampaignId(
+			@RequestHeader("X-User-Id") String userId, @PathVariable("campaignId") String campaignId,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "50") int size) {
+
+		AuditDTO auditDTO = auditService.createAuditDTO(userId, "Claimed Voucher List by Campaign", activityTypePrefix,
+				"/api/core/vouchers/campaigns/" + campaignId, HTTPVerb.GET);
+		String message = "";
+
 		try {
 			logger.info("Calling get Voucher by campaignId API...");
 
@@ -246,53 +227,35 @@ public class VoucherController {
 				Map<Long, List<VoucherDTO>> resultMap = voucherService.findAllClaimedVouchersByCampaignId(campaignId,
 						pageable);
 
-				if (resultMap.size() == 0) {
-					 message = "Voucher not found by campaignId: " + campaignId;
-					logger.error(message);
-					auditService.logAudit(auditDTO,404,message);
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
-				}
-
-				List<VoucherDTO> voucherDTOList = new ArrayList<VoucherDTO>();
-
-				for (Map.Entry<Long, List<VoucherDTO>> entry : resultMap.entrySet()) {
-					totalRecord = entry.getKey();
-					voucherDTOList = entry.getValue();
-
-					logger.info("totalRecord: " + totalRecord);
-					logger.info("voucherDTO List: " + voucherDTOList);
-
-				}
+				Map.Entry<Long, List<VoucherDTO>> firstEntry = resultMap.entrySet().iterator().next();
+				long totalRecord = firstEntry.getKey();
+				List<VoucherDTO> voucherDTOList = firstEntry.getValue();
 
 				if (voucherDTOList.size() > 0) {
-					
-					message = "Successfully get claimed vouchers by campaignId: " + campaignId;
-					logger.info(message);
-					auditService.logAudit(auditDTO,200,message);
-
-					return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(voucherDTOList,
-							message, totalRecord));
+					message = "Successfully retrieved claimed vouchers by campaignId: " + campaignId;
+					;
+					auditService.logAudit(auditDTO, 200, message);
+					return ResponseEntity.status(HttpStatus.OK)
+							.body(APIResponse.success(voucherDTOList, message, totalRecord));
 				} else {
-					 message = "Voucher not found by campaignId: " + campaignId;
-					logger.error(message);
-					auditService.logAudit(auditDTO,404,message);
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
-
+					message = "No Voucher List Available for Campaign ID: " + campaignId;
+					auditService.logAudit(auditDTO, 200, message);
+					return ResponseEntity.status(HttpStatus.OK).body(APIResponse.noList(voucherDTOList, message));
 				}
 			} else {
 				message = "Bad Request:Campaign ID could not be blank.";
 				logger.error(message);
-				
-				auditService.logAudit(auditDTO,400,message);
+
+				auditService.logAudit(auditDTO, 400, message);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 						.body(APIResponse.error("Bad Request:CampaignId could not be blank."));
 			}
 
 		} catch (Exception ex) {
 			logger.error("Calling Voucher get Voucher by campaignId API failed...");
-			message ="Failed to get voucher for campaignId " + campaignId;
+			message = "Failed to get voucher for campaignId " + campaignId;
 			auditDTO.setRemarks(ex.toString());
-			auditService.logAudit(auditDTO,400,message);
+			auditService.logAudit(auditDTO, 400, message);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(APIResponse.error("Failed to get voucher for campaignId " + campaignId));
 		}
@@ -300,7 +263,7 @@ public class VoucherController {
 	}
 
 	@PatchMapping(value = "{voucherID}/consume", produces = "application/json")
-	public ResponseEntity<APIResponse<VoucherDTO>> updateVoucher(@RequestHeader("X-User-Id") String userId,@PathVariable("voucherID") String voucherID) {
+	public ResponseEntity<APIResponse<VoucherDTO>> consumeVoucher(@RequestHeader("X-User-Id") String userId,@PathVariable("voucherID") String voucherID) {
 		String voucherId = GeneralUtility.makeNotNull(voucherID).trim();
 
 		logger.info("Calling Voucher consume API...");
@@ -315,7 +278,7 @@ public class VoucherController {
 			if (voucherDTO != null && !voucherDTO.getVoucherStatus().equals(VoucherStatus.CLAIMED)) {
 				
 				logger.error("Voucher already consumed or not in a claimable state. Id: {}", voucherId);
-				message ="Voucher already consumed.";
+				message ="Voucher has already been consumed.";
 				auditService.logAudit(auditDTO,401,message);
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body(APIResponse.error(message));
@@ -324,13 +287,13 @@ public class VoucherController {
 			VoucherDTO updatedVoucherDTO = voucherService.consumeVoucher(voucherId);
 
 			if (updatedVoucherDTO.getVoucherStatus().equals(VoucherStatus.CONSUMED)) {
-				message ="Voucher consumed successfully.";
+				message ="Voucher has been successfully consumed.";
 				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK)
 						.body(APIResponse.success(updatedVoucherDTO, message));
 			} else {
 				logger.error("Voucher consumption failed. Id: {}", voucherId);
-				message ="Voucher consumption failed.";
+				message ="The attempt to consume the voucher has been unsuccessful.";
 				auditService.logAudit(auditDTO,500,message);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 						.body(APIResponse.error(message));
