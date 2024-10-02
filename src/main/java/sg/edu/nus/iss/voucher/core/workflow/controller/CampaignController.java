@@ -64,33 +64,27 @@ public class CampaignController {
 			String message="";
 			Pageable pageable = PageRequest.of(page, size, Sort.by("startDate").ascending());
 			Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllActiveCampaigns(description,pageable);
-			
-			if (resultMap.isEmpty()) {
-			    message = "Campaign not found.";
-				logger.error(message);
-				auditService.logAudit(auditDTO,404,message);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
-			}
+			List<CampaignDTO> campaignDTOList = new ArrayList<>();
 
 			long totalRecord = resultMap.keySet().stream().findFirst().orElse(0L);
 
-			List<CampaignDTO> campaignDTOList = resultMap.getOrDefault(totalRecord, new ArrayList<>());
+		    campaignDTOList = resultMap.getOrDefault(totalRecord, new ArrayList<>());
 
 			logger.info("Total record: {}", totalRecord);
 			logger.info("CampaignDTO List: {}", campaignDTOList);
 
 			if (campaignDTOList.size() > 0) {
-				message ="Successfully get all active campaigns.";
+				message ="Successfully retrieve all active campaigns.";
 				
 				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK).body(
 						APIResponse.success(campaignDTOList, message, totalRecord));
 
 			} else {
-				message = "Campaign not found.";
+				message = "There are no available campaign list.";
 				logger.error(message);
-				auditService.logAudit(auditDTO,404,message);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
+				auditService.logAudit(auditDTO,200,message);
+				return ResponseEntity.status(HttpStatus.OK).body(APIResponse.noList(campaignDTOList,message));
 			}
 
 		} catch (Exception ex) {
@@ -132,7 +126,7 @@ public class CampaignController {
 					resultMap = campaignService.findByStoreIdAndStatus(storeId, campaignStatus, pageable);
 				} catch (IllegalArgumentException ex) {
 					
-					message ="Failed to get all campaigns by store Id. Campaign Status is invalid.";
+					message ="Unable to retrieve all campaigns for the specified store ID. The campaign status provided is invalid.";
 					logger.error(message, ex);
 					auditDTO.setRemarks(ex.toString());
 					auditService.logAudit(auditDTO,404,message);
@@ -141,35 +135,29 @@ public class CampaignController {
 				}
 			}
 
-			if (resultMap.isEmpty()) {
-				 message = "Campaign not found by storeId: " + storeId;
-				logger.error(message);
-				
-				auditService.logAudit(auditDTO,404,message);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
-			}
+			List<CampaignDTO> campaignDTOList = new ArrayList<CampaignDTO>();
 
 			long totalRecord = resultMap.keySet().stream().findFirst().orElse(0L);
 
-			List<CampaignDTO> campaignDTOList = resultMap.getOrDefault(totalRecord, new ArrayList<>());
+		   campaignDTOList = resultMap.getOrDefault(totalRecord, new ArrayList<>());
 
 			logger.info("Total record: {}", totalRecord);
 			logger.info("CampaignDTO List: {}", campaignDTOList);
 			if (campaignDTOList.size() > 0) {
-				message ="Successfully get all active campaigns.";
+				message ="Successfully retrieve all active campaigns.";
 				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK).body(
 						APIResponse.success(campaignDTOList, "Successfully get all active campaigns", totalRecord));
 
 			} else {
-				 message = "Campaign not found by storeId: " + storeId;
+				 message = "No campaigns found for the specified store ID: " + storeId;
 				logger.error(message);
-				auditService.logAudit(auditDTO,404,message);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
+				auditService.logAudit(auditDTO,200,message);
+				return ResponseEntity.status(HttpStatus.OK).body(APIResponse.noList(campaignDTOList,message));
 			}
 
 		} catch (Exception ex) {
-			message ="Calling Campaign getAllCampaignsByStoreId API failed. Failed to get all campaigns by store Id." ;
+			message ="Failed to call the Campaign getAllCampaignsByStoreId API. Unable to retrieve campaigns for the specified store ID." ;
 			logger.error(
 					message,
 					ex);
@@ -196,13 +184,6 @@ public class CampaignController {
 
 				Map<Long, List<CampaignDTO>> resultMap = campaignService.findAllCampaignsByUserId(userId,description, pageable);
 
-				if (resultMap.size() == 0) {
-					 message = "Campign not found.";
-					logger.error(message);
-					auditService.logAudit(auditDTO,400,message);
-					return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
-				}
-
 				List<CampaignDTO> campaignDTOList = new ArrayList<CampaignDTO>();
 
 				for (Map.Entry<Long, List<CampaignDTO>> entry : resultMap.entrySet()) {
@@ -215,16 +196,16 @@ public class CampaignController {
 				}
 
 				if (campaignDTOList.size() > 0) {
-					message="Successfully get all campaigns by user.";
+					message="Successfully retrieved all campaigns for the specified user.";
 					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK).body(APIResponse.success(campaignDTOList,
 							message, totalRecord));
 
 				} else {
-					message = "Campaign not found by user: " + userId;
-					auditService.logAudit(auditDTO,404,message);
-					return ResponseEntity.status(HttpStatus.NOT_FOUND)
-							.body(APIResponse.error(message));
+					message = "No campaigns were found for the specified user ID: " + userId;
+					auditService.logAudit(auditDTO,200,message);
+					return ResponseEntity.status(HttpStatus.OK)
+							.body(APIResponse.noList(campaignDTOList,message));
 				}
 			} else {
 				message = "Bad Request:Email could not be blank.";
@@ -236,7 +217,7 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message = "Calling Campaign getAllCampaignsByEmail API failed...Failed to get all campaigns by user";
+			message = "Failed to call the Campaign getAllCampaignsByEmail API. Unable to retrieve campaigns for the specified user.";
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
@@ -260,13 +241,13 @@ public class CampaignController {
 				CampaignDTO campaignDTO = campaignService.findByCampaignId(campaignId);
 
 				if (campaignDTO.getCampaignId().equals(campaignId)) {
-					message =  "Successfully get campaignId " + campaignId;
+					message =  "Successfully retrieved campaign with ID: " + campaignId;
 					
 					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK)
 							.body(APIResponse.success(campaignDTO,message));
 				} else {
-					message = "Campaign not found by campaignId: " + campaignId;
+					message = "Campaign not found for the specified campaign ID: " + campaignId;
 					
 					auditService.logAudit(auditDTO,404,message);
 					return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -284,7 +265,7 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message = "Calling Campaign get Campaign API failed.";
+			message = "Failed to call the Campaign getCampaign API.";
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
@@ -307,12 +288,12 @@ public class CampaignController {
 
 				CampaignDTO campaignDTO = campaignService.create(campaign);
 				if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
-					message ="Created successfully";
+					message = "Campaign has been created successfully.";
 					auditService.logAudit(auditDTO,200,message);
 					return ResponseEntity.status(HttpStatus.OK)
 							.body(APIResponse.success(campaignDTO,message));
 				} else {
-					message ="Failed to create campaign.";
+					message ="Campaign creation process was unsuccessful.";
 					auditService.logAudit(auditDTO,500,message);
 					logger.error(message);
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -327,7 +308,7 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message ="An error occurred while processing Create Campaign API.";
+			message ="An error has occurred while processing the Create Campaign API request.";
 			auditDTO.setRemarks(ex.toString());
 			
 			logger.error(message, ex);
@@ -353,14 +334,14 @@ public class CampaignController {
 				if (validationResult.isValid()) {
 					CampaignDTO campaignDTO = campaignService.update(campaign);
 					if (campaignDTO != null && !campaignDTO.getCampaignId().isEmpty()) {
-						message ="Updated sucessfully.";
+						message ="Campaign has been updated successfully.";
 						auditService.logAudit(auditDTO,200,message);
 						return ResponseEntity.status(HttpStatus.OK)
 								.body(APIResponse.success(campaignDTO, message));
 					} else {
 						logger.error("Calling Campaign create API failed...");
 						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-								APIResponse.error("Update Campaign failed:  campaignId: " + campaign.getCampaignId()));
+								APIResponse.error("The update for the campaign has failed. Please check the provided campaign ID:" + campaign.getCampaignId()));
 					}
 
 				} else {
@@ -378,7 +359,7 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message ="An error occurred while processing Update Campaign API.";
+			message ="An error has occurred while processing the Update Campaign API request.";
 			auditDTO.setRemarks(ex.toString());
 			
 			logger.info(message);
@@ -414,19 +395,19 @@ public class CampaignController {
 			
 			CampaignDTO campaignDTO = campaignService.promote(campaignId,userId);
 			if (campaignDTO != null && campaignDTO.getCampaignId()!=null) {
-				message ="Campaign promoted successfully.";
+				message ="Campaign has been promoted successfully.";
 				auditService.logAudit(auditDTO,200,message);
 				return ResponseEntity.status(HttpStatus.OK)
 						.body(APIResponse.success(campaignDTO, message));
 			} else {
-				message = "Campaign Promotion has failed.";
+				message = "Campaign promotion process has encountered an error and was unsuccessful.";
 				logger.error(message);
 				auditService.logAudit(auditDTO,500,message);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(APIResponse.error(message));
 			}
 
 		} catch (Exception ex) {
-			message ="An error occurred while processing Promote Campaign API.";
+			message ="An error has occurred while processing the Promote Campaign API request..";
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
