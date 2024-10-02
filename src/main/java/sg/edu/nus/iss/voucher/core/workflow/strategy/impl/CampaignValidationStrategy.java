@@ -44,6 +44,13 @@ public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<
 			validationResult.setValid(false);
 			return validationResult;
 		}
+		
+		if (campaign.getCategory() == null || campaign.getCategory().isEmpty()) {
+			validationResult.setMessage("Category cannot be empty.");
+			validationResult.setStatus(HttpStatus.BAD_REQUEST);
+			validationResult.setValid(false);
+			return validationResult;
+		}
 
 		if (campaign.getStore() == null || campaign.getStore().getStoreId().isEmpty()) {
 			validationResult.setMessage("Store Id cannot be empty.");
