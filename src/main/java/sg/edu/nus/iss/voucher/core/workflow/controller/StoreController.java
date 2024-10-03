@@ -60,7 +60,7 @@ public class StoreController {
 
 	@Value("${audit.activity.type.prefix}")
 	String activityTypePrefix;
-
+	
 	@GetMapping(value = "", produces = "application/json")
 	public ResponseEntity<APIResponse<List<StoreDTO>>> getAllActiveStoreList(@RequestHeader("X-User-Id") String userId,
 			@RequestParam(defaultValue = "") String query, @RequestParam(defaultValue = "0") int page,
@@ -69,6 +69,7 @@ public class StoreController {
 		String activityType = "GetAllActiveStoreList";
 		String endpoint = "/api/core/stores";
 		HTTPVerb httpMethod = HTTPVerb.GET;
+		String message = "";
 
 		try {
 
@@ -79,7 +80,6 @@ public class StoreController {
 			Map.Entry<Long, List<StoreDTO>> firstEntry = resultMap.entrySet().iterator().next();
 			long totalRecord = firstEntry.getKey();
 			List<StoreDTO> storeDTOList = firstEntry.getValue();
-			String message = "";
 
 			if (storeDTOList.size() > 0) {
 				message = query.isEmpty() ? "Successfully retrieved all active stores."
@@ -95,8 +95,9 @@ public class StoreController {
 			}
 
 		} catch (Exception e) {
+			message = "The attempt to retrieve active store list was unsuccessful.";
 			return handleResponseListAndSendAuditLogForFailuresCase(userId, activityType, endpoint, httpMethod,
-					e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+					message, HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
 		}
 
 	}
@@ -124,13 +125,13 @@ public class StoreController {
 
 			} else {
 				return handleResponseAndSendAudtiLogForFailureCase(userid, activityType, endpoint, httpMethod,
-						validationResult.getMessage(), validationResult.getStatus());
+						validationResult.getMessage(), validationResult.getStatus(), "");
 			}
 
 		} catch (Exception ex) {
-			message = ex.getMessage();
+			message = "The attempt to create store was unsuccessful.";
 			return handleResponseAndSendAudtiLogForFailureCase(userid, activityType, endpoint, httpMethod, message,
-					HttpStatus.INTERNAL_SERVER_ERROR);
+					HttpStatus.INTERNAL_SERVER_ERROR, ex.toString());
 		}
 
 	}
@@ -152,7 +153,7 @@ public class StoreController {
 			if (storeId.isEmpty()) {
 				message = "Bad Request: Store Id could not be blank.";
 				return handleResponseAndSendAudtiLogForFailureCase(userId, activityType, endpoint, httpMethod, message,
-						HttpStatus.BAD_REQUEST);
+						HttpStatus.BAD_REQUEST, "");
 			}
 
 			StoreDTO storeDTO = storeService.findByStoreId(storeId);
@@ -163,11 +164,11 @@ public class StoreController {
 		}
 
 		catch (Exception e) {
-			message = e.getMessage();
+			message = "The attempt to retrieve the store by the provided store ID was unsuccessful.";
 			HttpStatusCode htpStatuscode = e instanceof StoreNotFoundException ? HttpStatus.NOT_FOUND
 					: HttpStatus.INTERNAL_SERVER_ERROR;
 			return handleResponseAndSendAudtiLogForFailureCase(userId, activityType, endpoint, httpMethod, message,
-					htpStatuscode);
+					htpStatuscode, e.toString());
 		}
 
 	}
@@ -204,7 +205,7 @@ public class StoreController {
 				if (!entry.getKey()) {
 					message = entry.getValue();
 					return handleResponseListAndSendAuditLogForFailuresCase(userId, activityType, endpoint, httpMethod,
-							message, HttpStatus.BAD_REQUEST);
+							message, HttpStatus.BAD_REQUEST, "");
 				}
 			}
 
@@ -227,9 +228,9 @@ public class StoreController {
 			}
 
 		} catch (Exception e) {
-			message = e.getMessage();
+			message = "The attempt to retrieve the list of all active stores for the specified user was unsuccessful.";
 			return handleResponseListAndSendAuditLogForFailuresCase(userId, activityType, endpoint, httpMethod, message,
-					HttpStatus.INTERNAL_SERVER_ERROR);
+					HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
 		}
 	}
 
@@ -251,7 +252,7 @@ public class StoreController {
 			if (!validationResult.isValid()) {
 				message = validationResult.getMessage();
 				return handleResponseAndSendAudtiLogForFailureCase(userid, activityType, endpoint, httpMethod, message,
-						validationResult.getStatus());
+						validationResult.getStatus(), "");
 			}
 
 			StoreDTO storeDTO = storeService.updateStore(store, uploadFile);
@@ -259,10 +260,10 @@ public class StoreController {
 			return handleResponseAndSendAudtiLogForSuccessCase(userid, activityType, endpoint, httpMethod, message,
 					storeDTO);
 		} catch (Exception e) {
-			message = e.getMessage();
-			logger.error(message);
+			message = "The attempt to update store was unsuccessful.";
+				logger.error(message);
 			return handleResponseAndSendAudtiLogForFailureCase(userid, activityType, endpoint, httpMethod, message,
-					HttpStatus.INTERNAL_SERVER_ERROR);
+					HttpStatus.INTERNAL_SERVER_ERROR, e.toString());
 		}
 
 	}
@@ -276,9 +277,10 @@ public class StoreController {
 	}
 
 	private ResponseEntity<APIResponse<StoreDTO>> handleResponseAndSendAudtiLogForFailureCase(String userId,
-			String activityType, String endpoint, HTTPVerb httpVerb, String message, HttpStatusCode htpStatuscode) {
+			String activityType, String endpoint, HTTPVerb httpVerb, String message, HttpStatusCode htpStatuscode, String remark) {
 		logger.error(message);
 		AuditDTO auditDTO = auditService.createAuditDTO(userId, activityType, activityTypePrefix, endpoint, httpVerb);
+		auditDTO.setRemarks(remark);
 		auditService.logAudit(auditDTO, htpStatuscode.value(), message);
 		return ResponseEntity.status(htpStatuscode).body(APIResponse.error(message));
 	}
@@ -306,10 +308,11 @@ public class StoreController {
 	}
 
 	private ResponseEntity<APIResponse<List<StoreDTO>>> handleResponseListAndSendAuditLogForFailuresCase(String userId,
-			String activityType, String endpoint, HTTPVerb httpVerb, String message, HttpStatusCode htpStatuscode) {
+			String activityType, String endpoint, HTTPVerb httpVerb, String message, HttpStatusCode htpStatuscode, String remark) {
 		logger.info(message);
 		int httpStatusCode = htpStatuscode.value();
 		AuditDTO auditDTO = auditService.createAuditDTO(userId, activityType, activityTypePrefix, endpoint, httpVerb);
+		auditDTO.setRemarks(remark);
 		auditService.logAudit(auditDTO, httpStatusCode, message);
 		return ResponseEntity.status(httpStatusCode).body(APIResponse.error(message));
 

@@ -70,19 +70,18 @@ public class VoucherService implements IVoucherService {
 	public VoucherDTO findVoucherByCampaignIdAndUserId(Campaign campaign, String userId) {
 
 		logger.info("Getting voucher for CampaignId" + campaign.getCampaignId() + " " + userId);
+		VoucherDTO voucherDTO = new VoucherDTO();
 		try {
-			VoucherDTO voucherDTO = new VoucherDTO();
 			Voucher voucher = voucherRepository.findByCampaignAndClaimedBy(campaign, userId);
 			if (voucher != null) {
 				voucherDTO = DTOMapper.toVoucherDTO(voucher);
 			}
-			return voucherDTO;
 
 		} catch (Exception ex) {
 			logger.error("Finding voucher by campaing Id and userId exception... {}", ex.toString());
-			throw ex;
 
 		}
+		return voucherDTO;
 	}
 
 	@Override

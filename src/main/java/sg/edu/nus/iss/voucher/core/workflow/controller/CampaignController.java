@@ -89,11 +89,11 @@ public class CampaignController {
 
 		} catch (Exception ex) {
 			logger.error("An error occurred while processing getAllActiveCampaigns API.", ex);
-			String message="An error occurred while processing getAllActiveCampaigns API.";
+			String message="The attempt to retrieve all active campaigns was unsuccessful.";
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);		
-			
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 	}
 
@@ -157,13 +157,14 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message ="Failed to call the Campaign getAllCampaignsByStoreId API. Unable to retrieve campaigns for the specified store ID." ;
+			message ="The attempt to retrieve campaigns for the specified store ID was unsuccessful." ;
 			logger.error(
 					message,
 					ex);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 	}
 
@@ -217,12 +218,12 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message = "Failed to call the Campaign getAllCampaignsByEmail API. Unable to retrieve campaigns for the specified user.";
+			message = "The attempt to retrieve campaigns for the specified user was unsuccessful.";
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
-			
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 	}
 
@@ -265,11 +266,12 @@ public class CampaignController {
 			}
 
 		} catch (Exception ex) {
-			message = "Failed to call the Campaign getCampaign API.";
+			message = "The attempt retrieve campaing for specified campaign was unsuccessful.";
 			logger.error(message);
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 
 	}
@@ -313,7 +315,8 @@ public class CampaignController {
 			
 			logger.error(message, ex);
 			auditService.logAudit(auditDTO,500,message);
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 	}
 
@@ -364,7 +367,8 @@ public class CampaignController {
 			
 			logger.info(message);
 			auditService.logAudit(auditDTO,500,message);
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 	}
 
@@ -412,7 +416,8 @@ public class CampaignController {
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
 			logger.error("", ex);
-			throw ex;
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(APIResponse.error(message));
 		}
 	}
 

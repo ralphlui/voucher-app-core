@@ -95,7 +95,7 @@ public class VoucherController {
 			auditService.logAudit(auditDTO,404,message);
 			
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(APIResponse.error("Failed to get voucherId " + voucherId));
+					.body(APIResponse.error(message));
 		}
 
 	}
@@ -147,7 +147,7 @@ public class VoucherController {
 			logger.error(ex.getMessage());
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,404,message);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(ex.getMessage()));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(APIResponse.error(message));
 		} catch (Exception ex) {
 			logger.error("Calling Voucher claim API failed: " + ex.getMessage(), ex);
 			message = "The attempt to claim the voucher has been unsuccessful.";
@@ -257,7 +257,7 @@ public class VoucherController {
 			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO, 400, message);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(APIResponse.error("Failed to get voucher for campaignId " + campaignId));
+					.body(APIResponse.error(message));
 		}
 
 	}
@@ -303,12 +303,12 @@ public class VoucherController {
 			logger.error("Exception during Voucher consume API call. Id: {}, Error: {}", voucherId, ex.getMessage());
 			HttpStatusCode htpStatuscode = ex instanceof VoucherNotFoundException ? HttpStatus.NOT_FOUND
 					: HttpStatus.INTERNAL_SERVER_ERROR;
-			message =ex.getMessage()+voucherId;
-			auditDTO.setRemarks("Exception during Voucher consume API call. Id:"+voucherId);
+			message = "The attempt to consume the voucher has been unsuccessful.";
+			auditDTO.setRemarks(ex.toString());
 			auditService.logAudit(auditDTO,500,message);
 			
 			return ResponseEntity.status(htpStatuscode)
-					.body(APIResponse.error(ex.getMessage()));
+					.body(APIResponse.error(message));
 		}
 	}
 
