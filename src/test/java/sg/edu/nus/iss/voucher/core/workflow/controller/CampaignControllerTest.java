@@ -121,10 +121,10 @@ public class CampaignControllerTest {
         		.header("X-User-Id", userId)
                 .param("page", "0").param("size", "10")
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.message").value("Campaign not found."))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("There are no available campaign list."))
                 .andDo(print());
     }
 

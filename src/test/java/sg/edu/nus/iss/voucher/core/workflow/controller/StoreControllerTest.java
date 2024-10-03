@@ -97,7 +97,7 @@ public class StoreControllerTest {
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.message").value("Successfully get all active store.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("Successfully retrieved all active stores.")).andDo(print());
 
 		Mockito.when(storeService.getAllActiveStoreList("SK", pageable)).thenReturn(mockStoreMap);
 
@@ -108,7 +108,7 @@ public class StoreControllerTest {
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.message").value("Successfully retrieved searched stores.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("Successfully retrieved the stores matching the search criteria.")).andDo(print());
 		
 		
 		List<StoreDTO> emptyMockStores = new ArrayList<>();
@@ -119,7 +119,7 @@ public class StoreControllerTest {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/core/stores").param("query", "").param("page", "0").param("size", "10")
 				.header("X-User-Id", store1.getCreatedBy())
 				.contentType(MediaType.APPLICATION_JSON))
-		        .andExpect(MockMvcResultMatchers.status().isNotFound())
+		        .andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
 				.andExpect(jsonPath("$.message").value("No Active Store List.")).andDo(print());
@@ -167,7 +167,7 @@ public class StoreControllerTest {
 		        .andExpect(MockMvcResultMatchers.status().isBadRequest())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(false))
-				.andExpect(jsonPath("$.message").value("Bad Request: Store Create user id field could not be blank.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("Bad Request: User id field could not be blank.")).andDo(print());
 
 	}
 	
@@ -202,7 +202,7 @@ public class StoreControllerTest {
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))
-				.andExpect(jsonPath("$.message").value("Successfully get all active store by user.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("Successfully retrieved all active stores for the specified user.")).andDo(print());
 
 	}
 	

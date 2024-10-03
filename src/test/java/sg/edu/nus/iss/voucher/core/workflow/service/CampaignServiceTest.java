@@ -97,7 +97,6 @@ public class CampaignServiceTest {
 
 	@Test
 	void findAllCampaignsByStoreId() {
-		long totalRecord = 0;
 		List<CampaignDTO> campaignDTOList = new ArrayList<CampaignDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Campaign> mockCampaignPage = new PageImpl<>(mockCampaigns, pageable, mockCampaigns.size());
@@ -107,7 +106,6 @@ public class CampaignServiceTest {
 				.findAllCampaignsByStoreId(campaign1.getStore().getStoreId(),"", pageable);
 
 		for (Map.Entry<Long, List<CampaignDTO>> entry : campaignPage.entrySet()) {
-			totalRecord = entry.getKey();
 			campaignDTOList = entry.getValue();
 
 		}
@@ -119,7 +117,6 @@ public class CampaignServiceTest {
 
 	@Test
 	void findAllCampaignsByUserId() {
-		long totalRecord = 0;
 		List<CampaignDTO> campaignDTOList = new ArrayList<CampaignDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Campaign> mockCampaignPage = new PageImpl<>(mockCampaigns, pageable, mockCampaigns.size());
@@ -130,7 +127,6 @@ public class CampaignServiceTest {
 				.findAllCampaignsByUserId(campaign1.getCreatedBy(),"", pageable);
 
 		for (Map.Entry<Long, List<CampaignDTO>> entry : campaignPage.entrySet()) {
-			totalRecord = entry.getKey();
 			campaignDTOList = entry.getValue();
 
 		}
@@ -194,7 +190,6 @@ public class CampaignServiceTest {
 
 	@Test
 	void findByStoreIdAndStatus() {
-		long totalRecord = 0;
 		List<CampaignDTO> campaignDTOList = new ArrayList<CampaignDTO>();
 		Pageable pageable = PageRequest.of(0, 10);
 		Page<Campaign> mockCampaignPage = new PageImpl<>(mockCampaigns, pageable, mockCampaigns.size());
@@ -204,7 +199,6 @@ public class CampaignServiceTest {
 		Map<Long, List<CampaignDTO>> campaignPage = campaignService.findByStoreIdAndStatus(campaign1.getStore().getStoreId(),CampaignStatus.CREATED, pageable);
 
 		for (Map.Entry<Long, List<CampaignDTO>> entry : campaignPage.entrySet()) {
-			totalRecord = entry.getKey();
 			campaignDTOList = entry.getValue();
 
 		}

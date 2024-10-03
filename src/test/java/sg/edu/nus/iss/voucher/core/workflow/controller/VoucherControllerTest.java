@@ -103,7 +103,7 @@ public class VoucherControllerTest {
 		         .andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))	
-				.andExpect(jsonPath("$.message").value("Successfully get voucherId " + voucher2.getVoucherId())).andDo(print());
+				.andExpect(jsonPath("$.message").value("Successfully retrieved the voucher associated with the specified ID: " + voucher2.getVoucherId())).andDo(print());
 	}
 	
 	@Test
@@ -124,7 +124,7 @@ public class VoucherControllerTest {
 				.content(objectMapper.writeValueAsString(voucherRequest))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))	
-				.andExpect(jsonPath("$.message").value("Voucher claimed successfully.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("Voucher has been successfully claimed.")).andDo(print());
 	}
 	
 	@Test
@@ -174,6 +174,6 @@ public class VoucherControllerTest {
 				.content(objectMapper.writeValueAsString(voucher1))).andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$.success").value(true))	
-				.andExpect(jsonPath("$.message").value("Voucher consumed successfully.")).andDo(print());
+				.andExpect(jsonPath("$.message").value("Voucher has been successfully consumed.")).andDo(print());
 	}
 }

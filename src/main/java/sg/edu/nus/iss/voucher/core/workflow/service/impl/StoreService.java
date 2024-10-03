@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.amazonaws.services.s3.AmazonS3;
 
 import sg.edu.nus.iss.voucher.core.workflow.configuration.AWSConfig;
-import sg.edu.nus.iss.voucher.core.workflow.configuration.VoucherCoreSecurityConfig;
 import sg.edu.nus.iss.voucher.core.workflow.dto.StoreDTO;
 import sg.edu.nus.iss.voucher.core.workflow.entity.Store;
 import sg.edu.nus.iss.voucher.core.workflow.exception.StoreNotFoundException;
@@ -80,7 +79,7 @@ public class StoreService implements IStoreService {
 			logger.info("Saved successfully...{}", createdStore.getStoreId());
 			StoreDTO storeDTO = DTOMapper.toStoreDTO(createdStore);
 			if (storeDTO == null) {
-				throw new Exception("Create store failed: Unable to create a new store.");
+				throw new Exception("Store creation failed: Unable to create a new store at this time.");
 			}
 			return storeDTO;
 
@@ -115,7 +114,7 @@ public class StoreService implements IStoreService {
 				StoreDTO storeDTO = DTOMapper.toStoreDTO(store.get());
 				return storeDTO;
 			}
-			throw new StoreNotFoundException("Unable to find active store with id:" + storeId);
+			throw new StoreNotFoundException("Unable to find active store with this store id:" + storeId);
 		} catch (Exception ex) {
 			logger.error("findByStoreId exception... {}", ex.toString());
 			throw ex;
@@ -199,7 +198,7 @@ public class StoreService implements IStoreService {
 			logger.info("Updating store...");
 			Store updatedStore = storeRepository.save(dbStore.get());
 			if (updatedStore == null) {
-				throw new Exception("Update store failed: Changes could not be applied to the store :" + store.getStoreName());
+				throw new Exception("Store update failed: Unable to apply changes to the store:" + store.getStoreName());
 			}
 			logger.info("Updated successfully...{}", updatedStore.getStoreId());
 			storeDTO = DTOMapper.toStoreDTO(updatedStore);

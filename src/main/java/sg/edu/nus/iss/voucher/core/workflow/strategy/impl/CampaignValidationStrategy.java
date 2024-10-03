@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import sg.edu.nus.iss.voucher.core.workflow.service.impl.StoreService;
 import sg.edu.nus.iss.voucher.core.workflow.service.impl.UserValidatorService;
 import sg.edu.nus.iss.voucher.core.workflow.strategy.IAPIHelperValidationStrategy;
 import sg.edu.nus.iss.voucher.core.workflow.utility.GeneralUtility;
-import sg.edu.nus.iss.voucher.core.workflow.utility.JSONReader;
 
 @Service
 public class CampaignValidationStrategy implements IAPIHelperValidationStrategy<Campaign> {
