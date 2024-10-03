@@ -15,8 +15,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.HstsHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 @Configuration
@@ -32,14 +30,14 @@ public class VoucherCoreSecurityConfig {
 	        cors.configurationSource(request -> {
 	            CorsConfiguration config = new CorsConfiguration();
 	            config.setAllowedOrigins(List.of("*"));
-	            config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH"));
+	            config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "OPTIONS"));
 	            config.setAllowedHeaders(List.of("*"));
 	            config.applyPermitDefaultValues();
 	            return config;
 	        });
 	    }).headers(headers -> headers
 	        .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "*"))
-	        .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH"))
+	        .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, OPTIONS"))
 	        .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Headers", "*"))
 	        .addHeaderWriter(new HstsHeaderWriter(31536000, false, true))
 	        .addHeaderWriter((request, response) -> {
